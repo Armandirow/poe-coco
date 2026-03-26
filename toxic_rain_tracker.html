@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toxic Rain Pathfinder — Build Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Crimson+Pro:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0907;--bg2:#111009;--bg3:#181410;--bg4:#201c16;
+  --bord:rgba(180,145,70,.18);--bord2:rgba(180,145,70,.38);
+  --gold:#c9a84c;--gold2:#e8ca7a;
+  --tx:#d0c5aa;--mut:#a89e8c;--dim:#7d6e58;
+  --psn:#58b030;--psn2:#88e040;--blu2:#80b0f0;--red2:#e05050;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+body{font-family:'Crimson Pro',Georgia,serif;color:var(--tx);display:flex;flex-direction:column;font-size:15px;}
+.topbar{height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;background:var(--bg2);border-bottom:1px solid var(--bord2);}
+.tb-brand{display:flex;align-items:baseline;gap:12px;}
+.tb-title{font-family:'Cinzel',serif;font-size:16px;color:var(--gold2);letter-spacing:.1em;font-weight:600;}
+.tb-sub{font-family:'Cinzel',serif;font-size:11px;color:var(--mut);letter-spacing:.14em;}
+.tb-stats{display:flex;gap:28px;}
+.tbs{text-align:center;}
+.tbs-v{font-family:'Cinzel',serif;font-size:15px;color:var(--gold2);font-weight:500;}
+.tbs-l{font-size:10px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;}
+.act-tabs{height:42px;flex-shrink:0;display:flex;align-items:center;background:var(--bg3);border-bottom:1px solid var(--bord);padding:0 1rem;gap:4px;overflow-x:auto;}
+.act-tab{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.08em;color:var(--mut);padding:6px 14px;border-radius:4px;cursor:pointer;border:1px solid transparent;white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:7px;}
+.act-tab:hover{color:var(--gold);background:rgba(201,168,76,.08);}
+.act-tab.active{color:var(--gold2);background:rgba(201,168,76,.13);border-color:rgba(201,168,76,.32);}
+.tab-badge{font-size:10px;padding:1px 6px;border-radius:3px;background:rgba(88,176,48,.18);color:var(--psn2);font-family:'Cinzel',serif;}
+.act-tab.active .tab-badge{background:rgba(88,176,48,.3);}
+.layout{display:grid;grid-template-columns:340px 1fr 300px;grid-auto-rows:1fr;flex:1;min-height:0;overflow:hidden;}
+.col{overflow-y:auto;overflow-x:hidden;}
+.col::-webkit-scrollbar{width:4px;}
+.col::-webkit-scrollbar-thumb{background:var(--bord);}
+.left{background:var(--bg2);border-right:1px solid var(--bord);padding:1.1rem 1.1rem 3rem;}
+.col-hdr{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;padding-bottom:.65rem;border-bottom:1px solid var(--bord);margin-bottom:.9rem;}
+.guide-act-sel{width:100%;background:var(--bg4);border:1px solid var(--bord2);border-radius:5px;color:var(--gold);font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;padding:6px 10px;margin-bottom:.9rem;cursor:pointer;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23c9a84c'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
+.guide-act-sel option{background:var(--bg3);color:var(--tx);}
+.part-lbl{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin:1.1rem 0 .4rem;padding-left:4px;}
+.qstep{display:flex;align-items:flex-start;gap:9px;padding:7px;border-radius:5px;cursor:pointer;transition:background .12s;border:1px solid transparent;margin-bottom:2px;}
+.qstep:hover{background:var(--bg4);}
+.qstep.done{opacity:.35;}
+.qstep.done .qt{text-decoration:line-through;color:var(--dim);}
+.qdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:6px;}
+.d-fight{background:var(--red2);}.d-explore{background:var(--blu2);}.d-quest{background:var(--psn2);}.d-item{background:var(--gold);}
+.qt{font-size:14px;font-weight:300;line-height:1.5;color:var(--tx);}
+.qt b{font-weight:500;color:var(--gold2);}
+.center{background:var(--bg);display:flex;flex-direction:column;position:relative;min-width:0;min-height:0;}
+.tree-bar{display:flex;align-items:center;gap:10px;padding:8px 14px;flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--bord);}
+.tree-bar-lbl{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.14em;color:var(--mut);text-transform:uppercase;}
+.leg{display:flex;gap:12px;}
+.leg-i{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);}
+.leg-dot{width:12px;height:12px;border-radius:50%;border:2px solid;}
+.ld-p{background:rgba(80,65,40,.5);border-color:rgba(180,145,70,.3);}
+.ld-n{background:rgba(60,105,185,.25);border-color:rgba(110,165,240,.75);}
+.ld-t{background:rgba(80,170,38,.32);border-color:rgba(130,220,55,.88);}
+.ld-k{width:12px;height:12px;border-radius:0;transform:rotate(45deg);background:rgba(180,48,48,.3);border:2px solid rgba(220,75,75,.8);}
+.ld-m{width:13px;height:13px;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);background:rgba(217,102,160,.85);}
+.tree-hint{margin-left:auto;font-size:11px;color:var(--dim);}
+.tree-wrap{flex:1;overflow:hidden;cursor:crosshair;user-select:none;}
+#treeCanvas{display:block;}
+.right{background:var(--bg2);border-left:1px solid var(--bord);padding:1.1rem 1.1rem 3rem;}
+.sec{margin-bottom:1.5rem;}
+.sec-hdr{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;padding-bottom:.55rem;border-bottom:1px solid var(--bord);margin-bottom:.8rem;}
+.pbar-row{margin-bottom:9px;}
+.pbar-wrap{background:var(--bg4);border:1px solid var(--bord);border-radius:99px;height:5px;overflow:hidden;margin-bottom:4px;}
+.pbar{height:100%;border-radius:99px;transition:width .4s ease;}
+.pb-gold{background:linear-gradient(90deg,var(--gold),var(--gold2));}
+.pb-psn{background:linear-gradient(90deg,#2a7a10,var(--psn));}
+.pb-lbl{display:flex;justify-content:space-between;font-size:13px;color:var(--mut);}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:.7rem;}
+.sc{background:var(--bg3);border:1px solid var(--bord);border-radius:5px;padding:9px 8px;text-align:center;}
+.sc-v{font-family:'Cinzel',serif;font-size:16px;color:var(--gold2);font-weight:500;}
+.sc-l{font-size:10px;color:var(--dim);letter-spacing:.07em;text-transform:uppercase;}
+.gem-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(180,145,70,.07);}
+.gem-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.gd-a{background:var(--psn);}.gd-s{background:#4878c0;}.gd-u{background:var(--gold);}.gd-m{background:#b03030;}
+.gem-name{font-size:13px;font-weight:300;flex:1;color:var(--tx);}
+.gem-tag{font-size:10px;color:var(--mut);font-family:'Cinzel',serif;}
+.note-box{background:var(--bg3);border:1px solid var(--bord);border-radius:5px;padding:11px 13px;font-size:13px;font-weight:300;color:var(--mut);line-height:1.6;}
+.note-box b{color:var(--gold2);font-weight:400;}
+.ntl-row{display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid rgba(180,145,70,.06);cursor:pointer;}
+.ci-box{width:15px;height:15px;border-radius:3px;flex-shrink:0;border:1px solid var(--dim);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;transition:all .12s;}
+.ci-box.on{background:var(--psn);border-color:var(--psn2);}
+.ntl-name{font-size:13px;font-weight:300;flex:1;color:var(--tx);}
+.ntl-name.on{color:var(--dim);text-decoration:line-through;}
+.ntl-key{font-size:10px;color:var(--red2);font-family:'Cinzel',serif;margin-left:auto;}
+.ntl-mastery{font-size:10px;color:#d966a0;font-family:'Cinzel',serif;margin-left:auto;}
+.tip{position:fixed;background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;padding:10px 13px;max-width:230px;pointer-events:none;z-index:300;display:none;box-shadow:0 6px 24px rgba(0,0,0,.7);}
+.tip-name{font-family:'Cinzel',serif;font-size:13px;color:var(--gold2);font-weight:500;margin-bottom:4px;}
+.tip-desc{color:var(--mut);font-size:12px;font-weight:300;line-height:1.5;white-space:pre-line;}
+.tip-state{font-size:11px;margin-top:5px;font-family:'Cinzel',serif;letter-spacing:.07em;}
+.ts-p{color:var(--blu2);}.ts-t{color:var(--psn2);}.ts-o{color:var(--dim);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tb-brand"><span class="tb-title">TOXIC RAIN</span><span class="tb-sub">PATHFINDER · RANGER · 3.28</span></div>
+  <div class="tb-stats">
+    <div class="tbs"><div class="tbs-v">5,977</div><div class="tbs-l">Life</div></div>
+    <div class="tbs"><div class="tbs-v">713</div><div class="tbs-l">Mana</div></div>
+    <div class="tbs"><div class="tbs-v">21.2M</div><div class="tbs-l">Full DPS</div></div>
+    <div class="tbs"><div class="tbs-v" id="tb-taken">0</div><div class="tbs-l">Nodes taken</div></div>
+    <div class="tbs"><div class="tbs-v" id="tb-plan">14</div><div class="tbs-l">Planned</div></div>
+  </div>
+</div>
+<div class="layout">
+  <div class="col left"><div class="col-hdr">Leveling Guide</div><select class="guide-act-sel" id="guide-act-sel" onchange="switchGuideAct(+this.value)"><option value="1">Act I</option><option value="2">Act II</option><option value="3">Act III</option><option value="4">Act IV</option><option value="5">Act V</option><option value="6">Act VI</option><option value="7">Act VII</option><option value="8">Act VIII</option><option value="9">Act IX</option><option value="10">Act X</option></select><div id="quest-list"></div></div>
+  <div class="center">
+    <div class="act-tabs" id="act-tabs"></div>
+    <div class="tree-bar">
+      <span class="tree-bar-lbl">Passive Tree</span>
+      <div class="leg">
+        <div class="leg-i"><div class="leg-dot ld-p"></div>Previous acts</div>
+        <div class="leg-i"><div class="leg-dot ld-n"></div>This act</div>
+        <div class="leg-i"><div class="leg-dot ld-t"></div>Taken</div>
+        <div class="leg-i"><div class="leg-dot ld-k"></div>Keystone</div>
+        <div class="leg-i"><div class="leg-dot ld-m"></div>Mastery</div>
+      </div>
+      <span class="tree-hint">Click = taken · Right-click = undo</span>
+    </div>
+    <div class="tree-wrap" id="treeWrap"><canvas id="treeCanvas"></canvas></div>
+  </div>
+  <div class="col right" id="right-panel"></div>
+</div>
+<div class="tip" id="tip">
+  <div class="tip-name" id="tip-name"></div>
+  <div class="tip-desc" id="tip-desc"></div>
+  <div class="tip-state" id="tip-state"></div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   NODE COORDINATES
+   Source: skilltree-export/data.json
+   Origin = Ranger Start (25178) = (0, 0)
+   Scale K=335 — 1 unit ≈ 335 tree pixels
+══════════════════════════════════════════ */
+
+const C = {
+  "292": [8.08, 10.9],
+  "465": [-2.37, 1.44],
+  "903": [3.11, -1.29],
+  "1461": [10.35, 6.34],
+  "1822": [5.63, 20.52],
+  "2715": [2.67, -0.99],
+  "3187": [2.22, -1.29],
+  "3571": [11.3, 1.32],
+  "3676": [9.24, 7.53],
+  "4011": [0.25, 9.68],
+  "4502": [3.86, 20.59],
+  "5823": [1.02, 11.15],
+  "6538": [0.24, 4.8],
+  "6797": [11.19, 6.34],
+  "6799": [-1.5, 4.74],
+  "6910": [14.08, 6.89],
+  "8930": [-8.01, 0.75],
+  "8938": [2.66, 6.34],
+  "9206": [7.37, -1.5],
+  "9355": [0.25, 7.81],
+  "9535": [6.67, 7.19],
+  "9864": [6.28, 18.77],
+  "9877": [1.47, 11.96],
+  "10829": [-9.5, 0.74],
+  "10840": [11.11, 0.88],
+  "11688": [-10.46, 8.12],
+  "12143": [3.23, 24.05],
+  "12412": [10.35, -4.1],
+  "12801": [3.68, 5.55],
+  "13714": [-16.78, 2.91],
+  "13935": [11.3, 1.81],
+  "14156": [19.25, -1.79],
+  "14292": [8.26, 0.18],
+  "16167": [-10.81, 1.54],
+  "17790": [9.51, 6.9],
+  "18182": [10.35, 16.33],
+  "18402": [-8.91, 0.75],
+  "18436": [15.1, 8.52],
+  "18769": [5.37, 21.15],
+  "18770": [8.66, 2.9],
+  "19144": [-12.58, 1.54],
+  "19858": [7.82, -2.17],
+  "20736": [9.06, 7.08],
+  "20807": [10.35, -0.02],
+  "20812": [-7.44, 4.28],
+  "22748": [15.1, 3.42],
+  "22893": [-11.29, 2.59],
+  "23122": [-12.4, 3.22],
+  "23334": [11.62, 6.34],
+  "23616": [7.92, 24.5],
+  "24472": [-10.99, 2.15],
+  "24496": [-2.11, 6.28],
+  "25058": [2.02, 12.99],
+  "25178": [0.0, -0.0],
+  "25260": [8.53, 10.72],
+  "27656": [9.08, 12.99],
+  "27788": [8.27, 11.35],
+  "27865": [6.19, 7.19],
+  "28330": [-14.35, 1.54],
+  "28574": [-7.71, 7.14],
+  "28859": [2.56, 24.5],
+  "29454": [9.03, 2.9],
+  "29993": [-10.81, 2.59],
+  "30110": [6.69, 24.75],
+  "31585": [8.61, 7.27],
+  "31683": [-12.58, 3.67],
+  "32091": [-8.36, 2.9],
+  "32117": [0.67, -0.45],
+  "32640": [19.79, -1.25],
+  "32662": [19.69, -2.18],
+  "32763": [11.4, 5.97],
+  "33545": [-8.52, 8.68],
+  "33753": [14.08, 5.05],
+  "33783": [4.67, 19.28],
+  "33989": [-1.48, 5.65],
+  "34763": [7.58, 24.75],
+  "36221": [8.26, -1.5],
+  "36242": [18.72, -1.95],
+  "36287": [10.35, 3.55],
+  "36858": [7.44, 23.66],
+  "37504": [5.32, -1.44],
+  "37663": [-0.99, 8.13],
+  "38190": [6.26, 20.78],
+  "38662": [0.24, 3.19],
+  "38995": [8.37, 9.55],
+  "39861": [-1.22, 6.28],
+  "39938": [6.19, 7.67],
+  "40813": [19.17, -2.18],
+  "41250": [-0.57, 1.64],
+  "41536": [-1.46, 1.64],
+  "41866": [6.52, -1.44],
+  "42041": [-8.46, 0.08],
+  "42907": [7.14, 24.45],
+  "42964": [1.63, 1.47],
+  "43162": [-12.1, 3.67],
+  "44103": [-7.44, 3.52],
+  "44988": [-1.25, 8.76],
+  "45035": [-3.1, 1.45],
+  "45456": [-10.09, 8.12],
+  "45593": [3.24, 5.25],
+  "46277": [10.35, 9.61],
+  "46289": [2.46, 10.76],
+  "46578": [-15.67, 0.74],
+  "46665": [-8.46, 0.57],
+  "46896": [5.32, 18.77],
+  "47294": [5.8, 18.77],
+  "48099": [0.67, 0.45],
+  "48768": [-10.28, 7.67],
+  "49820": [8.84, 3.35],
+  "49900": [10.35, 7.87],
+  "49978": [0.25, 6.34],
+  "50338": [0.24, 1.47],
+  "50459": [-4.1, 1.45],
+  "51101": [18.86, -1.51],
+  "51212": [3.38, 10.15],
+  "51786": [-6.4, 6.34],
+  "53013": [6.69, 25.12],
+  "53042": [-10.99, 3.04],
+  "53114": [3.24, 4.88],
+  "53456": [8.91, 19.97],
+  "53615": [-1.06, 4.55],
+  "54142": [0.24, -1.44],
+  "54868": [5.71, 7.19],
+  "55485": [-17.7, 3.53],
+  "55491": [3.05, 24.5],
+  "55571": [3.23, 24.94],
+  "56116": [-9.53, 1.89],
+  "56295": [10.35, 12.99],
+  "57240": [0.3, 0.45],
+  "58968": [-0.36, 8.39],
+  "59370": [-2.55, 2.39],
+  "59482": [5.8, 19.26],
+  "59606": [5.06, 6.34],
+  "60440": [3.78, 25.77],
+  "60735": [7.81, 0.48],
+  "61653": [6.0, 21.42],
+  "61834": [8.08, 12.99],
+  "62712": [-1.01, 1.94],
+  "62744": [9.33, 3.35],
+  "63194": [-1.06, 4.07],
+  "63251": [8.36, 3.35],
+  "63293": [18.72, -2.41],
+  "63795": [-1.24, 3.2],
+  "64111": [20.17, -2.18],
+  "64265": [-0.61, 4.74],
+  "65210": [0.97, -0.0],
+  "65224": [2.11, 1.47],
+  "65296": [19.5, -0.87],
+  "65528": [3.68, 5.07],
+};
+
+// Per-act cumulative node lists (from toxic.xml)
+
+const SPECS = {
+  "Act 1 {1}": ["41536","50459","465","62712","48099","25178","65224","57240","41250","42964","65210","45035","50338"],
+  "Act 3 {2}": ["50459","39938","49978","48099","65224","3571","59606","6799","27865","25178","44988","5823","40813","62712","64265","41250","10840","63194","64111","9877","25058","4011","57240","41536","8938","65210","45035","37663","42964","13935","50338","1461","465","38662","51212","46289","36287","9355","20807","58968","6538","54868","9535","32662"],
+  "Act 5 {3}": ["50459","39938","49978","30110","48099","53013","65224","42907","3571","59606","46289","27865","25178","56295","5823","36287","40813","4011","54868","64265","41250","25260","36858","20807","27788","10840","63194","44988","50338","64111","12801","45593","9877","38662","25058","62712","49900","18182","32662","57240","65210","23616","38995","6538","37663","42964","45035","13935","1461","465","46277","9355","53114","41536","53456","51212","58968","8938","34763","9535","6799"],
+  "Act 7 {4}": ["32117","39938","30110","46289","50338","32662","5823","40813","54868","64265","61653","25260","27788","45593","9877","49900","12143","45035","23616","42964","2715","20807","58968","34763","50459","51101","49978","48099","65224","3571","53114","6799","27865","14156","903","41250","3187","10840","63194","53456","42907","64111","54142","12801","9355","53013","55571","36287","28859","18182","44988","62712","65210","56295","38995","13935","37663","8938","46277","37504","1461","465","38662","6538","60440","4011","25058","51212","59606","18769","41536","9535","36858"],
+  "Act 10 {5}": ["32117","10829","28859","46289","50338","32662","36287","40813","62712","24472","61653","25260","32091","27788","45593","9877","41866","49900","19144","39861","65210","6538","23616","42964","29993","2715","19858","20807","58968","53042","34763","42041","53456","42907","50459","51101","49978","53615","41250","48099","39938","65224","59606","36858","53114","6799","20812","14156","30110","45035","53013","4011","46277","54868","903","8938","3187","44988","51786","18402","3571","63194","37663","54142","64111","41536","12801","9355","55571","16167","63293","10840","18182","56116","5823","44103","25058","38995","13935","22893","9206","64265","37504","1461","465","38662","24496","36242","12143","27865","51212","60440","18769","8930","9535","56295"],
+  "Early Maps {6}": ["32117","10829","30110","49820","53615","50338","44988","36287","63251","40813","54868","24472","8930","25260","32091","27788","45593","9877","41866","28859","49900","19144","42907","39861","65528","4011","65210","45035","23616","42964","48099","39938","29993","2715","19858","3676","46665","32640","64265","20807","58968","53042","34763","6538","9206","32662","5823","50459","51101","49978","38662","55491","292","33989","65224","56295","3571","53114","6799","20812","14156","37504","17790","27865","61653","37663","3187","903","8938","62744","36858","18402","10840","65296","63194","59370","29454","64111","56116","12801","9355","63795","25058","63293","55571","18182","59606","16167","44103","42041","38995","13935","54142","22893","46289","51786","1461","60440","46277","24496","36242","12143","53013","51212","18770","18769","31585","9535","53456"],
+  "Endgame {7}": ["32117","10829","30110","46896","46289","55491","50338","44988","46578","63251","40813","42907","54868","64265","8930","25260","32091","36287","28330","61653","24472","46665","55485","65528","6538","45593","9877","41866","37663","38662","49900","19144","53013","39861","33989","12143","65210","45035","23616","42964","51786","56295","29993","2715","19858","3676","53456","32640","54142","20807","9864","53042","34763","58968","42041","5823","36858","50459","51101","49978","44103","18770","48099","53114","38190","27865","3571","59606","6799","1822","14156","20812","17790","65224","59482","63795","4502","903","8938","62744","3187","10840","18402","65296","63194","59370","29454","64111","31585","12801","9355","16167","55571","63293","25058","18182","292","47294","56116","9206","39938","13935","22893","53615","18769","37504","1461","28859","46277","24496","36242","33783","32662","51212","27788","13714","4011","9535","60440"],
+  "1 Cluster {8}": ["58968","65296","39938","12412","30110","51786","6538","33989","18436","46896","66841","36221","33783","65818","50338","53456","36287","63251","40813","66835","54868","24472","61653","25260","32091","65826","27788","65830","33753","65808","65810","38190","42907","45593","32763","41866","32662","53615","49900","56295","51212","39861","65528","8930","6797","45035","23616","44988","22748","12143","29993","46277","19858","3676","65834","32640","9877","20807","9864","53042","34763","6910","9206","46289","28859","50459","51101","49978","22893","18770","292","60440","31585","53114","3571","59606","6799","1822","14156","44103","17790","27865","59482","65831","16167","10840","8938","62744","63795","55571","18402","23334","63194","59370","29454","64111","66832","12801","9355","25058","4502","63293","36858","18182","20812","42041","56116","55491","65824","13935","37663","64265","4011","37504","1461","10829","38662","24496","36242","65210","53013","46665","18769","47294","5823","9535","48099"],
+  "Ultra Endgame {9}": ["10829","27656","23122","44988","46578","24472","32091","27788","9877","39861","33989","12143","22748","65830","32640","20807","9206","53013","51101","60440","31585","3571","53114","14156","33753","65831","62744","43162","10840","23334","65808","59370","29454","64111","66832","16167","63293","18182","44103","65824","13935","28574","24496","9535","28859","65817","66841","36221","53615","50338","32662","5823","63251","18436","13714","8930","25260","28330","20736","45593","32763","49900","19144","6797","6538","65826","33545","19858","3676","48768","55485","58968","53042","34763","6910","42041","65811","50459","61834","49978","18770","48099","36858","12412","27865","65834","66835","31683","14292","45456","65210","8938","36287","30110","23616","18402","38662","18769","59606","37663","39938","56116","12801","9355","54868","55571","63795","25058","56295","63194","65296","45035","60735","17790","53456","22893","20812","6799","51786","1461","46289","46277","29993","36242","4011","65528","51212","61653","40813","64265","42907","11688"],
+};
+
+// Real connections from data.json
+
+const EDGES = [
+  ["58968","9355"],
+  ["12412","20807"],
+  ["34763","42907"],
+  ["23334","6797"],
+  ["24496","39861"],
+  ["28574","51786"],
+  ["38662","63795"],
+  ["32662","64111"],
+  ["29993","53042"],
+  ["30110","53013"],
+  ["36858","61653"],
+  ["31683","43162"],
+  ["41536","465"],
+  ["28330","46578"],
+  ["32662","40813"],
+  ["46289","5823"],
+  ["27656","61834"],
+  ["28859","55571"],
+  ["24496","51786"],
+  ["14156","51101"],
+  ["19144","28330"],
+  ["20812","51786"],
+  ["1822","4502"],
+  ["4011","5823"],
+  ["12801","45593"],
+  ["17790","3676"],
+  ["45593","53114"],
+  ["10829","32091"],
+  ["12143","28859"],
+  ["3187","54142"],
+  ["47294","9864"],
+  ["5823","9877"],
+  ["38662","6538"],
+  ["63194","6799"],
+  ["32640","65296"],
+  ["36242","51101"],
+  ["11688","45456"],
+  ["54868","59606"],
+  ["45035","50459"],
+  ["42041","46665"],
+  ["18769","61653"],
+  ["37663","58968"],
+  ["20807","36287"],
+  ["14156","64111"],
+  ["12143","55491"],
+  ["37504","903"],
+  ["55571","60440"],
+  ["53615","6799"],
+  ["50338","57240"],
+  ["37663","44988"],
+  ["38662","50338"],
+  ["23122","43162"],
+  ["18402","8930"],
+  ["2715","3187"],
+  ["45035","465"],
+  ["18770","29454"],
+  ["37504","41866"],
+  ["13935","3571"],
+  ["46277","56295"],
+  ["36287","62744"],
+  ["42964","50338"],
+  ["36221","9206"],
+  ["20812","44103"],
+  ["14292","20807"],
+  ["33989","39861"],
+  ["1461","6797"],
+  ["46896","59482"],
+  ["1461","36287"],
+  ["39861","49978"],
+  ["27656","56295"],
+  ["25260","46277"],
+  ["33545","45456"],
+  ["10829","56116"],
+  ["46277","49900"],
+  ["41250","62712"],
+  ["23334","32763"],
+  ["1461","17790"],
+  ["12412","36221"],
+  ["18182","56295"],
+  ["29454","62744"],
+  ["42041","8930"],
+  ["42964","65224"],
+  ["31585","3676"],
+  ["25178","57240"],
+  ["41536","62712"],
+  ["49978","9355"],
+  ["10829","16167"],
+  ["53114","65528"],
+  ["32117","65210"],
+  ["33783","46896"],
+  ["14292","60735"],
+  ["63194","64265"],
+  ["48099","65210"],
+  ["41866","9206"],
+  ["25058","9877"],
+  ["28574","33545"],
+  ["36858","60440"],
+  ["23616","34763"],
+  ["27788","292"],
+  ["27865","9535"],
+  ["39938","9535"],
+  ["4011","9355"],
+  ["41250","50338"],
+  ["16167","24472"],
+  ["2715","903"],
+  ["1822","38190"],
+  ["18770","63251"],
+  ["16167","19144"],
+  ["1461","59606"],
+  ["10840","13935"],
+  ["64265","6538"],
+  ["23616","36858"],
+  ["33783","4502"],
+  ["59370","63795"],
+  ["18182","53456"],
+  ["19858","9206"],
+  ["59606","8938"],
+  ["45035","59370"],
+  ["22893","53042"],
+  ["25260","27788"],
+  ["19144","23122"],
+  ["49978","6538"],
+  ["10829","18402"],
+  ["48099","50338"],
+  ["20736","31585"],
+  ["59482","9864"],
+  ["46289","51212"],
+  ["36242","63293"],
+  ["11688","48768"],
+  ["32640","64111"],
+  ["49820","63251"],
+  ["38995","46277"],
+  ["13714","46578"],
+  ["30110","42907"],
+  ["12801","8938"],
+  ["39938","54868"],
+  ["13714","55485"],
+  ["36858","53456"],
+  ["32091","44103"],
+  ["32117","54142"],
+  ["10840","20807"],
+  ["38190","61653"],
+  ["1461","49900"],
+  ["22893","24472"],
+  ["49978","8938"],
+];
+
+function coord(id) {
+  if (C[id]) return C[id];
+  const h = (parseInt(id) * 2654435761) >>> 0;
+  return [(h % 24) - 12, ((h >> 10) % 24) - 12];
+}
+
+// [name, stats, type]
+
+const NI = {
+  "292": ["Life Mastery", "", "mastery"],
+  "465": ["Projectile Damage and Attack Speed", "4% increased Attack Speed / 10% increased Projectile Damage", "small"],
+  "903": ["Movement Speed and Spell Suppression", "+3% chance to Suppress Spell Damage / 3% increased Movement Speed", "small"],
+  "1461": ["Dexterity", "+10 to Dexterity", "small"],
+  "1822": ["Life and Energy Shield", "5% increased maximum Energy Shield / 5% increased maximum Life", "small"],
+  "2715": ["Quickstep", "+10% chance to Suppress Spell Damage / 6% increased Movement Speed", "notable"],
+  "3187": ["Movement Speed and Spell Suppression", "+3% chance to Suppress Spell Damage / 3% increased Movement Speed", "small"],
+  "3571": ["Mana Mastery", "", "mastery"],
+  "3676": ["Flask Charges Gained", "10% increased Flask Charges gained", "small"],
+  "4011": ["Dexterity", "+10 to Dexterity", "small"],
+  "4502": ["Intelligence", "+10 to Intelligence", "small"],
+  "5823": ["Coordination", "10% increased Attack Speed / 8% increased Cast Speed / +10 to Dexterity and Intelligence", "notable"],
+  "6538": ["Intelligence", "+10 to Intelligence", "small"],
+  "6797": ["Projectile Damage", "4% increased Projectile Damage", "small"],
+  "6799": ["Charisma", "16% increased Mana Reservation Efficiency of Skills / 6% increased effect of Non-Curse Auras from your Skills", "notable"],
+  "6910": ["Medium Jewel Socket", "", "small"],
+  "8930": ["Life and Flasks", "4% increased maximum Life / 10% increased Life Recovery from Flasks", "small"],
+  "8938": ["Dexterity", "+10 to Dexterity", "small"],
+  "9206": ["Life", "6% increased maximum Life", "small"],
+  "9355": ["Strength", "+10 to Strength", "small"],
+  "9535": ["Hunter's Gambit", "+10% to Chaos Damage over Time Multiplier / 10% increased Skill Effect Duration / 25% increased Damage Over Time with Bow Skills", "notable"],
+  "9864": ["Growth and Decay", "+12% to Damage over Time Multiplier / Regenerate 1% of Life per second", "notable"],
+  "9877": ["Life", "5% increased maximum Life", "small"],
+  "10829": ["Dexterity", "+10 to Dexterity", "small"],
+  "10840": ["Attack Mana Cost", "8% reduced Mana Cost of Attacks", "small"],
+  "11688": ["Spell Damage", "8% increased Spell Damage", "small"],
+  "12143": ["Influence", "14% increased effect of Non-Curse Auras from your Skills", "notable"],
+  "12412": ["Dexterity", "+10 to Dexterity", "small"],
+  "12801": ["Evasion and Life", "10% increased Evasion Rating / 4% increased maximum Life", "small"],
+  "13714": ["Life", "5% increased maximum Life", "small"],
+  "13935": ["Thrill of Battle", "Gain 2 Mana per Enemy Hit with Attacks / 15% reduced Mana Cost of Attacks", "notable"],
+  "14156": ["Flask Effect and Duration", "8% increased Flask Effect Duration / Flasks applied to you have 5% increased Effect", "ascendancy"],
+  "14292": ["Dexterity", "+10 to Dexterity", "small"],
+  "16167": ["Dexterity", "+10 to Dexterity", "small"],
+  "17790": ["Flask Charges Gained", "10% increased Flask Charges gained", "small"],
+  "18182": ["Intelligence", "+10 to Intelligence", "small"],
+  "18402": ["Life and Flasks", "4% increased maximum Life / 10% increased Life Recovery from Flasks", "small"],
+  "18436": ["Small Jewel Socket", "", "small"],
+  "18769": ["Written in Blood", "10% increased maximum Energy Shield / 10% increased maximum Life / +10 to Strength", "notable"],
+  "18770": ["Spell Suppression", "+8% chance to Suppress Spell Damage", "small"],
+  "19144": ["Sentinel", "24% increased Evasion Rating and Armour / +10% to all Elemental Resistances", "notable"],
+  "19858": ["Herbalism", "10% increased maximum Life / 30% increased Flask Recovery rate", "notable"],
+  "20736": ["Flask Mastery", "", "mastery"],
+  "20807": ["Dexterity", "+10 to Dexterity", "small"],
+  "20812": ["Evasion and Spell Suppression", "+4% chance to Suppress Spell Damage / 12% increased Evasion Rating", "small"],
+  "22748": ["Small Jewel Socket", "", "small"],
+  "22893": ["Skill Duration", "10% increased Skill Effect Duration", "small"],
+  "23122": ["Projectile Damage", "8% increased Projectile Damage", "small"],
+  "23334": ["Projectile Damage", "4% increased Projectile Damage", "small"],
+  "23616": ["Physical and Chaos Damage", "10% increased Chaos Damage / 10% increased Physical Damage", "small"],
+  "24472": ["Skill Duration", "10% increased Skill Effect Duration", "small"],
+  "24496": ["Dexterity", "+10 to Dexterity", "small"],
+  "25058": ["Blood Siphon", "10% increased maximum Life / Gain 10 Life per Enemy Killed / +20 to Strength", "notable"],
+  "25178": ["Primal Spirit", "20% increased maximum Mana / Gain 4 Mana per Enemy Hit with Attacks if you've used a Mana Flask in the past 10 seconds / +20 to Strength and Intelligence", "notable"],
+  "25260": ["Life", "6% increased maximum Life", "small"],
+  "27656": ["Intelligence", "+10 to Intelligence", "small"],
+  "27788": ["Blood Drinker", "10% increased maximum Life / Recover 2% of Life on Kill", "notable"],
+  "27865": ["Bow Mastery", "", "mastery"],
+  "28330": ["Strength", "+10 to Strength", "small"],
+  "28574": ["Dexterity", "+10 to Dexterity", "small"],
+  "28859": ["Reservation Efficiency", "8% increased Mana Reservation Efficiency of Skills", "small"],
+  "29454": ["Spell Suppression", "+8% chance to Suppress Spell Damage", "small"],
+  "29993": ["Duration Mastery", "", "mastery"],
+  "30110": ["Chaos Damage Over Time Multiplier", "+6% to Chaos Damage over Time Multiplier", "small"],
+  "31585": ["Careful Conservationist", "10% reduced Flask Charges used / Flasks applied to you have 5% increased Effect / 20% increased Flask Charges gained if you've dealt a Critical Strike Recently", "notable"],
+  "31683": ["Basic Jewel Socket", "", "small"],
+  "32091": ["Evasion and Spell Suppression", "+4% chance to Suppress Spell Damage / 12% increased Evasion Rating", "small"],
+  "32117": ["Life and Stun Avoidance", "4% increased maximum Life / 8% chance to Avoid being Stunned", "small"],
+  "32640": ["Flask Effect and Charges Gained", "10% increased Flask Charges gained / Flasks applied to you have 5% increased Effect", "ascendancy"],
+  "32662": ["Flask Effect, Chaos Damage", "15% increased Chaos Damage / Flasks applied to you have 5% increased Effect", "ascendancy"],
+  "32763": ["Large Jewel Socket", "", "small"],
+  "33545": ["Harrier", "8% increased Attack Speed / 6% increased Cast Speed / 5% increased Movement Speed", "notable"],
+  "33753": ["Medium Jewel Socket", "", "small"],
+  "33783": ["Intelligence", "+10 to Intelligence", "small"],
+  "33989": ["Basic Jewel Socket", "", "small"],
+  "34763": ["Chaos Damage Over Time Multiplier", "+6% to Chaos Damage over Time Multiplier", "small"],
+  "36221": ["Life", "6% increased maximum Life", "small"],
+  "36242": ["Flask Effect and Duration", "8% increased Flask Effect Duration / Flasks applied to you have 5% increased Effect", "ascendancy"],
+  "36287": ["Dexterity", "+10 to Dexterity", "small"],
+  "36858": ["Intelligence", "+10 to Intelligence", "small"],
+  "37504": ["Intuition", "+8% chance to Suppress Spell Damage / 15% increased Evasion Rating / 5% increased maximum Life", "notable"],
+  "37663": ["Chaos Damage Over Time Multiplier", "+5% to Chaos Damage over Time Multiplier", "small"],
+  "38190": ["Life and Energy Shield", "5% increased maximum Energy Shield / 5% increased maximum Life", "small"],
+  "38662": ["Dexterity", "+10 to Dexterity", "small"],
+  "38995": ["Life and Mana on Hit", "Gain 4 Life per Enemy Hit with Attacks / Gain 2 Mana per Enemy Hit with Attacks", "small"],
+  "39861": ["Dexterity", "+10 to Dexterity", "small"],
+  "39938": ["Bow Damage", "20% increased Damage Over Time with Bow Skills", "small"],
+  "40813": ["Nature's Reprisal", "25% chance to inflict Withered for 2 seconds on Hit / 50% increased Effect of Withered", "notable"],
+  "41250": ["Projectile Damage", "10% increased Projectile Damage", "small"],
+  "41536": ["Projectile Damage", "10% increased Projectile Damage", "small"],
+  "41866": ["Dexterity", "+10 to Dexterity", "small"],
+  "42041": ["Profane Chemistry", "7% increased maximum Life / 30% increased Life Recovery from Flasks / Life Flasks gain 1 Charge every 3 seconds", "notable"],
+  "42907": ["Chaos Damage Over Time Multiplier", "+6% to Chaos Damage over Time Multiplier", "small"],
+  "42964": ["Bow Damage", "12% increased Damage with Bows / 12% increased Damage Over Time with Bow Skills", "small"],
+  "43162": ["Projectile Damage", "8% increased Projectile Damage", "small"],
+  "44103": ["Reflexes", "+10% chance to Suppress Spell Damage / +100 to Evasion Rating / 30% increased Evasion Rating", "notable"],
+  "44988": ["Wasting", "+10% to Chaos Damage over Time Multiplier / +17% to Chaos Resistance", "notable"],
+  "45035": ["Projectile Damage and Accuracy", "+30 to Accuracy Rating / 16% increased Projectile Damage", "small"],
+  "45456": ["Spell Damage", "8% increased Spell Damage", "small"],
+  "45593": ["Evasion and Life", "10% increased Evasion Rating / 5% increased maximum Life", "small"],
+  "46277": ["Dexterity", "+10 to Dexterity", "small"],
+  "46289": ["Damage Over Time", "10% increased Damage over Time", "small"],
+  "46578": ["Strength", "+10 to Strength", "small"],
+  "46665": ["Flask Mastery", "", "mastery"],
+  "46896": ["Damage Over Time Multiplier and Life Regeneration", "+3% to Damage over Time Multiplier / Regenerate 0.4% of Life per second", "small"],
+  "47294": ["Damage Over Time Mastery", "", "mastery"],
+  "48099": ["Life and Stun Avoidance", "4% increased maximum Life / 8% chance to Avoid being Stunned", "small"],
+  "48768": ["Basic Jewel Socket", "", "small"],
+  "49820": ["Spell Suppression Mastery", "", "mastery"],
+  "49900": ["Dexterity", "+10 to Dexterity", "small"],
+  "49978": ["Dexterity", "+10 to Dexterity", "small"],
+  "50338": ["Ballistics", "20% increased Projectile Speed / 20% increased Projectile Damage / +20 to Dexterity", "notable"],
+  "50459": ["RANGER", "", "start"],
+  "51101": ["Nature's Adrenaline", "Flasks gain 3 Charges every 3 seconds", "notable"],
+  "51212": ["Entropy", "23% increased Damage over Time / 10% increased Skill Effect Duration", "notable"],
+  "51786": ["Dexterity", "+10 to Dexterity", "small"],
+  "53013": ["Atrophy", "27% increased Chaos Damage / 12% increased Skill Effect Duration", "notable"],
+  "53042": ["Exceptional Performance", "25% increased Skill Effect Duration", "notable"],
+  "53114": ["Revenge of the Hunted", "18% increased Evasion Rating / 10% increased maximum Life / +10% chance to Suppress Spell Damage while on Full Life", "notable"],
+  "53456": ["Intelligence", "+10 to Intelligence", "small"],
+  "53615": ["Reservation Mastery", "", "mastery"],
+  "54142": ["Finesse", "8% increased Attack Speed / 15% increased Global Accuracy Rating / +20 to Dexterity", "notable"],
+  "54868": ["Bow Damage", "16% increased Damage Over Time with Bow Skills", "small"],
+  "55485": ["Constitution", "+20 to maximum Life / 10% increased maximum Life", "notable"],
+  "55491": ["Reservation Mastery", "", "mastery"],
+  "55571": ["Aura Effect", "6% increased effect of Non-Curse Auras from your Skills", "small"],
+  "56116": ["Magebane", "Dexterity provides no inherent bonus to Evasion Rating / +1% Chance to Suppress Spell Damage per 15 Dexterity", "keystone"],
+  "56295": ["Intelligence", "+10 to Intelligence", "small"],
+  "57240": ["Mana and Flask Effect", "8% increased maximum Mana / Flasks applied to you have 5% increased Effect", "small"],
+  "58968": ["Chaos Damage Over Time Multiplier", "+5% to Chaos Damage over Time Multiplier", "small"],
+  "59370": ["Dexterity", "+10 to Dexterity", "small"],
+  "59482": ["Life Regeneration", "Regenerate 0.8% of Life per second", "small"],
+  "59606": ["Dexterity", "+10 to Dexterity", "small"],
+  "60440": ["Intelligence", "+10 to Intelligence", "small"],
+  "60735": ["Basic Jewel Socket", "", "small"],
+  "61653": ["Life and Energy Shield", "5% increased maximum Energy Shield / 5% increased maximum Life", "small"],
+  "61834": ["Basic Jewel Socket", "", "small"],
+  "62712": ["Projectile Damage", "10% increased Projectile Damage", "small"],
+  "62744": ["Spell Suppression", "+8% chance to Suppress Spell Damage", "small"],
+  "63194": ["Reservation Efficiency", "8% increased Mana Reservation Efficiency of Skills", "small"],
+  "63251": ["Inveterate", "Prevent +3% of Suppressed Spell Damage / +15% chance to Suppress Spell Damage", "notable"],
+  "63293": ["Master Surgeon", "Life Flask Effects are not removed when Unreserved Life is Filled / Life Flask Effects do not Queue / 50% less Life Recovery from Flasks", "notable"],
+  "63795": ["Dexterity", "+10 to Dexterity", "small"],
+  "64111": ["Pathfinder", "", "start"],
+  "64265": ["Aura Area of Effect", "12% increased Area of Effect of Aura Skills", "small"],
+  "65210": ["Heart of Oak", "8% increased maximum Life / 20% chance to Avoid being Stunned / Regenerate 2% of Life per Second if you've used a Life Flask in the past 10 seconds", "notable"],
+  "65224": ["Aspect of the Eagle", "20% increased Damage with Bows / 6% increased Attack Speed with Bows / 10% increased Accuracy Rating with Bows", "notable"],
+  "65296": ["Nature's Boon", "Magic Utility Flasks applied to you have 30% increased Effect", "notable"],
+  "65528": ["Evasion Mastery", "", "mastery"],
+};
+
+function ni(id){ const d=NI[id]; return d?{n:d[0],d:d[1],t:d[2]}:{n:"#"+id,d:"",t:"small"}; }
+
+function sSet(a){ return new Set(SPECS[a]||[]); }
+function pSet(a){ const k=Object.keys(SPECS),i=k.indexOf(a),s=new Set(); for(let j=0;j<i;j++) SPECS[k[j]].forEach(n=>s.add(n)); return s; }
+function aSet(a){ const s=sSet(a); pSet(a).forEach(n=>s.add(n)); return s; }
+function nSet(a){ const sp=sSet(a),pv=pSet(a); return new Set([...sp].filter(n=>!pv.has(n))); }
+
+const LEVELING_GUIDE={
+1:[
+  "Kill Hillock at the end of the Twilight Strand.",
+  "Enter Lioneye's Watch and talk to Tarkleigh to receive the reward.",
+  "Enter the Coast and run to the end of the zone. Acquire the Waypoint. Enter the Mud Flats.",
+  "Find the 3 Rhoa Nests. Collect all 3 glyphs, find the glyph wall and open the exit to The Submerged Passage. Grab the Waypoint.",
+  "Take the Waypoint to the Coast and enter the Tidal Island. Kill Hailrake. Logout and turn in with Nessa — take the Quicksilver Flask.",
+  "Talk to Tarkleigh for the gem reward.",
+  "Take the Waypoint to the Submerged Passage. If you find the Flooded Depths entrance, put a portal down.",
+  "Find the exit to the Ledge.",
+  "Grab the Ledge Waypoint and continue to the exit to the Climb.",
+  "Run through the Climb, grabbing the Waypoint if you come across it.",
+  "Enter the Lower Prison and grab the Waypoint.",
+  "Take the Waypoint to Lioneye's Watch — use your portal or Waypoint back to Flooded Depths.",
+  "Find the entrance to the Flooded Depths.",
+  "Kill the Deep Dweller, then logout.",
+  "Talk to Tarkleigh for the Book of Skill, then take the Waypoint to the Lower Prison.",
+  "Find the Labyrinth Trial and complete it.",
+  "Locate the exit to the Upper Prison.",
+  "Find the exit to the Warden's Quarters and make your way to the Warden's Chambers.",
+  "Kill Brutus. Logout or portal back to town.",
+  "Talk to Tarkleigh to receive the gem reward.",
+  "Take the Waypoint back to Prisoner's Gate.",
+  "Exit into the Ship Graveyard. Grab the Waypoint near the entrance.",
+  "Find the exit into the Cavern of Wrath and grab the Waypoint. If you find the Ship Graveyard Cave entrance, put a portal down.",
+  "Take the Waypoint back to Lioneye's Watch and return to Ship Graveyard via portal or Waypoint.",
+  "Find and enter the Ship Graveyard Cave. Retrieve the Allflame.",
+  "Talk to Fairgraves and kill him.",
+  "Talk to Bestel (Book of Skill) and Nessa (gem reward).",
+  "Take the Waypoint to the Cavern of Wrath. Exit into the Cavern of Anger, then Merveil's Lair.",
+  "Kill Merveil and enter the Southern Forest.",
+  "Run through the zone and enter the Forest Encampment.",
+],
+2:[
+  "Take the exit to the right to The Old Fields.",
+  "If you haven't found a second Quicksilver Flask: enter The Den, kill The Great White Beast, and return to the Old Fields. Otherwise proceed to The Crossroads.",
+  "Follow the road to find the Crossroads Waypoint.",
+  "Take the left path to The Chamber of Sins Level 1.",
+  "Find and descend to The Chamber of Sins Level 2, grabbing the Waypoint if you come across it.",
+  "Complete the Labyrinth Trial. Kill Fidelitas, loot Fidelitas' Spike, click the Strange Device, loot the Baleful Gem, then logout.",
+  "Pick up your gem reward from Gruest, and teleport back to The Crossroads.",
+  "Go to The Fellshrine Ruins and enter The Crypt Level 1.",
+  "Complete the Labyrinth Trial, then proceed to The Crypt Level 2.",
+  "Locate Archbishop Geofri (kill or skip), click the altar for the Golden Hand, then logout.",
+  "Pick up your Skill Book reward from Yeena, and teleport back to the Crossroads.",
+  "Enter the Broken Bridge. Kill or help Kraityn, then logout.",
+  "Take the exit to Riverways. Follow the road and grab the Waypoint, then continue to the Western Forest.",
+  "Grab the Waypoint. Look for the spider-web-covered wall, follow it to The Weaver's Chambers.",
+  "Proceed through the Weaver's Chamber, kill The Weaver, pick up Maligaros Spike, then logout.",
+  "Pick up your gem reward from Slik, and teleport back to Riverways.",
+  "Go through the 2 pillars and continue to The Wetlands.",
+  "Find and kill or help Oak. Grab the Waypoint, then take it back to the Western Forest.",
+  "Find Alira in her camp along the wall (on the waypoint side of the road). Kill or help her.",
+  "Follow the wall left to the Blackguard camp. Kill their leader, take the Thaumetic Emblem, use it on Thaumetic Seal, then logout.",
+  "Waypoint to Act 1 town. Pick up Skill Book from Tarkleigh. Return to Act 2, collect rewards, then teleport to The Wetlands.",
+  "Poison the roots. Enter the Vaal Ruins, break the seal, and exit into Northern Forest.",
+  "Head upwards through the Northern Forest to The Caverns — skip the Dread Thicket. Grab the Waypoint.",
+  "Locate the entrance to the Ancient Pyramid and ascend to the Pyramid Apex.",
+  "Slay the Vaal Oversoul and exit into the City of Sarn.",
+  "Kill the Blackguards harassing Clarissa and speak with her before running off.",
+  "Follow the staircase below Clarissa to find the Sarn Encampment.",
+],
+3:[
+  "Exit into the Slums.",
+  "Find the Crematorium, grab the Waypoint, and complete the Labyrinth Trial.",
+  "Find Piety, defeat her, interact with Tolman, and take Tolman's Bracelet.",
+  "Logout or portal to town. Speak with Clarissa to receive the Sewer Keys.",
+  "Enter the Slums, find the Sewer Grating, open it, and enter the Sewers.",
+  "Locate the three Platinum Busts (one before the Waypoint, two after). Find the exit into the Marketplace.",
+  "Grab the Marketplace Waypoint.",
+  "Enter the Catacombs (right of the Waypoint), complete the Labyrinth Trial, then logout and return to the Marketplace via Waypoint.",
+  "Locate the exit to the Battlefront.",
+  "Find the Waypoint (center of zone). Head downwards to find the Blackguard Chest (looks like a cart) — take the Ribbon Spool.",
+  "Head left from the Waypoint to find the entrance to The Docks.",
+  "(Optional) Kill monsters in the Docks to catch up on levels if needed.",
+  "Locate the Supply Container and loot the Thaumetic Sulphite, then logout.",
+  "Waypoint to Battlefront, head upwards to the Solaris Temple Level 1. Proceed through to Level 2.",
+  "Continue through the temple until you find the Waypoint. Talk to Lady Dialla (Amulet reward + Infernal Talc).",
+  "Logout or portal to town. Talk to Hargan for the Book of Skill.",
+  "Waypoint to the Sewers. Go down/left from the Waypoint and burn away the Undying Blockage.",
+  "Enter the Ebony Barracks, grab the Waypoint, and head upwards to find General Gravicius.",
+  "Kill General Gravicius and continue heading upwards.",
+  "Enter the Lunaris Temple Level 1. Grab the Waypoint and enter Level 2.",
+  "Look for ascending staircases — single-cart side is the correct path. Kill Piety and loot the Tower Key.",
+  "Return to town. Talk to Grigor (Book of Skill) and Maramoa (gem reward).",
+  "Waypoint to Ebony Barracks. Head right to find the entrance to the Imperial Gardens.",
+  "Follow the tiled path to the Waypoint.",
+  "(Optional) Upper left path at the three-way fork for Library quest: find the Loose Candle, enter The Archives, collect the Four Golden Pages, then speak to Siosa for your reward.",
+  "Complete the final Normal Lab Labyrinth Trial (upper-left corner of Imperial Gardens).",
+  "From the three-way fork, head lower-right then upper-right to find the Sceptre of God. Ascend to the Upper Sceptre of God.",
+  "Kill Dominus.",
+  "Enter the Aqueduct and make your way through to Highgate.",
+],
+4:[
+  "Enter The Dried Lake.",
+  "Locate Voll, defeat him, and take Deshret's Banner. Logout or Portal to Town.",
+  "Open the mines with Deshret's Banner. Enter The Mines Level 1, then Level 2.",
+  "Locate Deshret's Spirit and release it.",
+  "Enter the Crystal Veins and locate the Waypoint. Return to Highgate.",
+  "Speak to Tasuni (Book of Skill) and Oyun (gem reward).",
+  "Recommended: complete your first Labyrinth and Ascend here.",
+  "Return to the Crystal Veins via Waypoint.",
+  "Enter Kaom's Dream. Proceed to Kaom's Stronghold, grab the Waypoint, continue to the Caldera of the King. Defeat Kaom and pick up the Eye of Fury. Return to town, then Waypoint back to Crystal Veins.",
+  "Enter Daresso's Dream. Defeat Barkhul, enter The Grand Arena and grab the Waypoint. Defeat the Trio, then enter The Ring of Blades and defeat Daresso. Take the Eye of Desire. Logout or portal to town.",
+  "Talk to Dialla.",
+  "Enter the Belly of the Beast Level 1, then Level 2, then the Bowels of the Beast.",
+  "Defeat Piety.",
+  "Enter The Harvest, grab the Waypoint. Slay Malachai's 3 guardians (Doedre, Maligaro, Shavronne) and loot the organs.",
+  "Use the 3 organs to enter The Black Core (next to the Waypoint).",
+  "Kill Malachai.",
+  "Logout or portal to town. Speak to Dialla (uppermost part of city) for the gem reward.",
+  "Exit into The Ascent (upper right of Highgate). Interact with the resonator and take the Oriath Portal.",
+],
+5:[
+  "Grab the Waypoint and make your way through the Slave Pens.",
+  "Kill Overseer Crow, then ascend the ladder to enter the Overseer's Tower.",
+  "Talk to Lani to receive the ring reward.",
+  "Enter the Control Blocks. Find the Miasmeter (about halfway through, left-most part of the area).",
+  "Kill Justicar Casticus and pick up the Eyes of Zeal.",
+  "Enter Oriath Square and grab the Waypoint.",
+  "Find and enter the Templar Courts. Make your way to The Chamber of Innocence — grab the immediate Waypoint.",
+  "Find The Sanctum of Innocence and kill High Templar Avarius and Innocence.",
+  "Enter The Chamber of Innocence through the newly opened exit.",
+  "Enter the Torched Courts and make your way through the area.",
+  "Enter the Ruined Square.",
+  "Enter the Ossuary. Find the Sign of Purity and return to the Ruined Square.",
+  "Locate The Reliquary. Find each of Kitava's Torments, then logout or portal to town.",
+  "Speak to NPCs for quest rewards.",
+  "Ensure your elemental resistances are ~30% overcapped before fighting Kitava (−30% penalty incoming).",
+  "Return to the Ruined Square via Waypoint. Enter the Cathedral Rooftop.",
+  "Enter the Cathedral Apex and defeat Kitava. (−30% resistance penalty applied.)",
+  "Speak with Lily Roth and sail to Wraeclast.",
+],
+6:[
+  "Exit to The Twilight Strand. Clear all monsters, logout or portal to town, then speak with Lilly Roth.",
+  "Enter The Coast. Proceed through the zone and grab the Waypoint at the end.",
+  "Enter the Mud Flats. Find and kill The Dishonored Queen. Take the Eye of Conquest.",
+  "Find the exit to the Karui Fortress (upper middle of the area). Enter Tukohama's Keep.",
+  "Defeat Tukohama. Talk to Sin and select Soul of Tukohama as your Pantheon Minor God.",
+  "Find and enter The Ridge. Grab the Waypoint and return to Lioneye's Watch. Talk to Tarkleigh (Skill Book reward).",
+  "Return to The Ridge via Waypoint. Find and enter the Lower Prison — grab the Waypoint just inside.",
+  "Find the Labyrinth Trial and complete it.",
+  "Find and enter Shavronne's Tower. Ascend to the Prison Rooftop.",
+  "Kill Brutus and Shavronne.",
+  "Go through the Warden's Chambers and enter the Prisoner's Gate. Grab the Waypoint.",
+  "Find the Valley of the Fire Drinker and defeat Abberath. Logout or portal to town — talk to Bestel (Skill Book). Return via Waypoint to Prisoner's Gate and head in the opposite direction from Abberath.",
+  "Enter the Western Forest. Follow the main road to find the Waypoint.",
+  "Find and enter The Riverways. Follow the main road to find the Waypoint.",
+  "Find and enter The Wetlands (usually upper part of Riverways). Find the Spawning Ground and kill the Puppet Mistress. Logout or portal — talk to Tarkleigh (Skill Book). Return to Riverways via Waypoint.",
+  "Find and enter the Southern Forest (usually middle/lower-right of Riverways). Grab the Waypoint before exiting into the Cavern of Anger.",
+  "Open the Flag Chest and take the Black Flag. Make your way through the cavern to The Beacon. Enter and immediately grab the Waypoint.",
+  "Ascend the pyramid structure — escort the two pillars by standing in the glowing circles. Click the Ignition Switch, then the Beacon.",
+  "Talk to Weylam Roth and sail to the Brine King's Reef. Grab the Waypoint.",
+  "Locate and enter the Brine King's Throne (follow the left wall). Kill the Brine King.",
+  "Speak to Sin and grab your Brine King major Pantheon. Talk to Weylam Roth and sail to Act VII.",
+],
+7:[
+  "Enter the Broken Bridge. Travel towards the bottom left part of the area.",
+  "Enter The Crossroads. Follow the road and grab the Waypoint in the center.",
+  "Take the bottom fork from the Waypoint and enter the Fellshrine Ruins.",
+  "Enter The Crypt and acquire the Waypoint. Find and complete the Labyrinth Trial.",
+  "Find the Sarcophagus and descend to The Crypt Level 2. Locate the Container of Sins and take Maligaro's Map.",
+  "Return to the Bridge Encampment via Portal or logout.",
+  "Return to The Crossroads via Waypoint. Take the upper path and enter the Chamber of Sins Level 1.",
+  "Grab the Waypoint at the central cross. Insert Maligaro's Map into the Map Device.",
+  "Enter Maligaro's Sanctum, proceed to Maligaro's Workshop. Kill Maligaro and take the Black Venom. Leave via Portal Scroll.",
+  "Speak with Silk and take the Obsidian Key.",
+  "Find and enter the Chamber of Sins Level 2. Find and complete the Labyrinth Trial.",
+  "Enter The Den, proceed and exit into the Ashen Fields. Enter the Fortress Encampment.",
+  "Slay Greust.",
+  "Enter the Northern Forest. Grab the Waypoint.",
+  "Enter the Dread Thicket. Enter the Den of Despair and kill Gruthkul. Collect 7 Fireflies from around the Dread Thicket.",
+  "Return to the Bridge Encampment. Speak with Eramir to receive two Books of Skill.",
+  "(Optional) Speak with Helena to receive Greust's Necklace. If you find the Azmeri Shrine in the Northern Forest, place the necklace there.",
+  "Return to the Northern Forest via Waypoint. Find the exit to The Causeway.",
+  "Grab the Causeway Waypoint. Acquire Kishara's Star from Kishara's Lockbox near the exit.",
+  "Enter the Vaal City. Locate Yeena (and the Waypoint) in the difficult-to-reach center of the city.",
+  "Take the Waypoint to town. Give Kishara's Star to Weylam (Skill Book reward). Return to Vaal City.",
+  "Speak with Yeena. Enter the Temple of Decay Level 1, then Level 2.",
+  "Enter Arakaali's Web. Kill Arakaali.",
+  "Enter the Sarn Ramparts, then the Sarn Encampment.",
+  "Recommended: complete the Second Labyrinth here.",
+],
+8:[
+  "Enter the Toxic Conduits. Locate and enter Doedre's Cesspool.",
+  "Open the grate and enter The Cauldron. Kill Doedre the Vile.",
+  "Exit into the Sewer Outlet and grab the Waypoint.",
+  "Take the right path and enter The Quay.",
+  "Open the Sealed Casket and take the Ankh of Eternity (look for a long bridge near the entrance).",
+  "Locate and enter the Resurrection Site and kill Tolman. Talk to Clarissa. Return to The Quay.",
+  "Enter the Grain Gate and grab the Waypoint. Head upward, following the right-upper wall. Kill the Gemling Legionnaires.",
+  "Enter the Imperial Fields and follow the main road to find the Waypoint.",
+  "Return to Sarn Encampment. Speak to Clarissa and Maramoa (Books of Skill). Speak to Hargan (ring reward).",
+  "Return to the Imperial Fields. Enter the Solaris Temple Level 1 (grab Waypoint if found), then Level 2.",
+  "Kill Dawn and take the Sun Orb. Logout or portal to town. Return to Solaris Temple Level 1 via Waypoint.",
+  "Find and enter The Solaris Concourse. Run through, grab the Waypoint, and enter The Harbour Bridge.",
+  "Run through and enter The Lunaris Concourse. Grab the Waypoint and enter The Bath House.",
+  "Find the Labyrinth Trial and complete it.",
+  "Enter the High Gardens, proceed to the Pools of Terror, enter and slay Yugul. Logout or portal to town.",
+  "Speak to Hargan (Skill Book reward). Return to Lunaris Concourse via Waypoint.",
+  "Enter the Lunaris Temple Level 1 (head upwards). Grab the Waypoint, then enter Level 2.",
+  "Kill Dusk and take the Moon Orb. Logout or portal to town. Return to Lunaris Concourse via Waypoint.",
+  "Enter the Harbour Bridge, then The Sky Shrine.",
+  "Kill Solaris and Lunaris.",
+  "Enter the Blood Aqueducts, then Highgate.",
+],
+9:[
+  "Enter The Descent and head right. Descend via the Supply Hoists to the Vastiri Desert.",
+  "Locate and acquire the Waypoint.",
+  "Locate the Storm Weathered Chest. Defeat the waves of mummies and take the Storm Blade.",
+  "Portal to town. Speak with Petarus and Vanja, then talk to Sin, then speak with Petarus and Vanja again to take the Bottled Storm. Return via portal to the Vastiri Desert.",
+  "Find the entrance to The Oasis (now accessible with the Bottled Storm). Enter and proceed to the Sand Pit.",
+  "Kill Shakari. Logout or portal to town. Speak to Irasha (Skill Book reward). Return to Vastiri Desert via Waypoint.",
+  "Enter The Foothills. Find the Waypoint (usually upper-right part of area).",
+  "Enter the Boiling Lake. Kill the Basilisk and take the Basilisk Acid (look for groups of petrified enemies). Logout or portal, then return to The Foothills via Waypoint.",
+  "Enter The Tunnel (usually upper or upper-left). Acquire the Waypoint. Find and complete the Labyrinth Trial.",
+  "Enter The Quarry. Run to the center and grab the Waypoint.",
+  "Enter The Refinery. Find and kill General Adus (upper/upper-left area). Interact with the Theurgic Precipitate Machine and take the Trarthan Powder. Portal or logout, return to The Quarry via Waypoint.",
+  "Enter the Shrine of the Winds and slay Garukhan. Return to town, speak with Irasha (Skill Book reward). Return to The Quarry via Waypoint.",
+  "Talk to Sin and enter the Belly of the Beast.",
+  "Enter the Rotting Core, then the Black Core. Talk to Sin.",
+  "Enter each portal and defeat Malachai's guardians (Shavronne, Maligaro, and Doedre).",
+  "Enter the Black Heart and kill the Depraved Trinity.",
+  "Talk to Lilly Roth and sail to Oriath.",
+],
+10:[
+  "Enter the Cathedral Rooftop.",
+  "Enter the Cathedral Apex (immediate left upon entering the rooftop). Kill the Cultists and Gargoyles to free Bannon.",
+  "Return to the Cathedral Rooftop and make your way to the right. Enter the Ravaged Square.",
+  "Head downward-right to find the Control Blocks entrance and enter it.",
+  "Pick up the Waypoint. Find and kill Vilenta (roughly where the Miasmeter was in Act V). Logout or portal to town.",
+  "Talk to Lani (Skill Book reward). Waypoint to Control Blocks, then exit to Ravaged Square.",
+  "Head upward to find the Waypoint and acquire it. Enter the Ossuary.",
+  "Find and complete the Labyrinth Trial (near the Waypoint). (Optional: Elixir of Allure for Respec points is also nearby.)",
+  "Waypoint to Ravaged Square. Enter the Torched Courts and proceed through.",
+  "Enter the Desecrated Chambers (similar layout to Chamber of Innocence). Grab the immediate Waypoint.",
+  "Find and kill Avarius, Reassembled.",
+  "Return to the Oriath Docks via Waypoint. Talk to Bannon, then Lani (Flask and Armor rewards).",
+  "Recommended: complete the third Labyrinth here. Ensure you are 30%+ overcapped on elemental resistances.",
+  "Talk to Innocence. Return to the Ravaged Square and head upwards to find him. Speak with him.",
+  "Enter the Canals, then The Feeding Trough.",
+  "Speak with Sin and enter the Altar of Hunger. Kill Kitava. (Second −30% resistance penalty applied.)",
+  "Speak with Lani in Oriath for the Skill Book reward. Main questline complete!",
+],
+};
+const GEMS={
+  "Act 1 {1}": [{n:"Caustic Arrow",t:"a",g:"Main"},{n:"Pierce",t:"s",g:"Sup"},{n:"Void Manipulation",t:"s",g:"Sup"},{n:"Dash / Blink Arrow",t:"m",g:"Move"},{n:"Withering Step",t:"a",g:"Util"},{n:"Clarity (Lv 5–6 only)",t:"u",g:"Aura"}],
+  "Act 3 {2}": [{n:"Toxic Rain",t:"a",g:"Main"},{n:"Mirage Archer",t:"s",g:"Sup"},{n:"Void Manipulation",t:"s",g:"Sup"},{n:"Vicious Projectiles",t:"s",g:"Sup"},{n:"Clarity",t:"u",g:"Aura"},{n:"Blink Arrow",t:"m",g:"Move"}],
+  "Act 5 {3}": [{n:"Toxic Rain",t:"a",g:"4–5L"},{n:"Mirage Archer",t:"s",g:"Sup"},{n:"Void Manip",t:"s",g:"Sup"},{n:"Vicious Proj.",t:"s",g:"Sup"},{n:"Vaal Caustic Arrow",t:"a",g:"Clear"},{n:"Arrow Nova",t:"s",g:"Sup"},{n:"Withering Step+Auto",t:"a",g:"Util"},{n:"Flame Dash",t:"m",g:"Move"}],
+  "Act 7 {4}": [{n:"Toxic Rain",t:"a",g:"6L"},{n:"Mirage Archer+Efficacy",t:"s",g:"Sup"},{n:"Void Manip+More Dur.",t:"s",g:"Sup"},{n:"Haste",t:"u",g:"Aura"},{n:"Malevolence",t:"u",g:"Aura"},{n:"Despair (Ring)",t:"a",g:"Curse"}],
+  "Act 10 {5}":[{n:"Toxic Rain",t:"a",g:"6L"},{n:"Full 6-link",t:"s",g:"Sup"},{n:"Haste+Malevolence",t:"u",g:"Auras"},{n:"Manaforged Arrows",t:"s",g:"Trigger"},{n:"Immortal Call+Auto",t:"a",g:"Defense"}],
+  "Early Maps {6}":[{n:"Toxic Rain",t:"a",g:"6L"},{n:"Void Manip+Vicious Proj.",t:"s",g:"Sup"},{n:"Mirage Archer+Efficacy",t:"s",g:"Sup"},{n:"More Duration",t:"s",g:"Sup"},{n:"Haste+Malevolence",t:"u",g:"Auras"},{n:"Despair (Ring)",t:"a",g:"Curse"},{n:"Manaforged Arrows",t:"s",g:"Trigger"},{n:"Withering Step+Auto",t:"a",g:"Util"}],
+  "Endgame {7}":[{n:"Toxic Rain",t:"a",g:"6L"},{n:"Void Manip+Vicious Proj.",t:"s",g:"Sup"},{n:"Mirage Archer+Efficacy",t:"s",g:"Sup"},{n:"More Duration",t:"s",g:"Sup"},{n:"Haste+Malevolence",t:"u",g:"Auras"},{n:"Despair (Ring)",t:"a",g:"Curse"},{n:"Manaforged Arrows",t:"s",g:"Trigger"},{n:"Withering Step+Auto",t:"a",g:"Util"}],
+  "1 Cluster {8}":[{n:"Toxic Rain",t:"a",g:"6L"},{n:"Cluster Jewels setup",t:"s",g:"Cluster"},{n:"Haste+Malevolence",t:"u",g:"Auras"},{n:"Manaforged Arrows",t:"s",g:"Trigger"},{n:"Withering Step+Auto",t:"a",g:"Util"}],
+  "Ultra Endgame {9}":[{n:"Toxic Rain",t:"a",g:"6L"},{n:"Full optimized links",t:"s",g:"Best-in-slot"},{n:"Haste+Malevolence",t:"u",g:"Auras"},{n:"Manaforged Arrows",t:"s",g:"Trigger"},{n:"Withering Step+Auto",t:"a",g:"Util"}],
+};
+const NOTES={
+  "Act 1 {1}": "Grab <b>Caustic Arrow</b> from Tarkleigh. Beeline <b>Primal Spirit</b> node for mana. Run <b>Clarity Lv 5–6 only</b>. Stack Flask + Poison nodes.",
+  "Act 3 {2}": "Switch to <b>Toxic Rain</b>. Do <b>Siosa Library</b> for Flame Dash + Malevolence. Pick up <b>Acrobatics</b> — major defensive node upper-right of spine.",
+  "Act 5 {3}": "After Kitava: <b>−30% resistances</b>. Noxious Strike keystone unlocks poison scaling. Vaal Caustic Arrow for pack clear.",
+  "Act 7 {4}": "Haste + Malevolence auras online. After Act 10 Kitava: another <b>−30%</b>. Complete Cruel Lab for 2 Pathfinder points.",
+  "Act 10 {5}":"Target <b>37–43% AoE</b> for TR pod overlap. Manaforged Arrows trigger setup. Merciless Lab next.",
+  "Early Maps {6}":"6-link Toxic Rain priority. Fix mana with <b>−X mana cost</b> craft on rings. Searing Exarch helm implicit. Eternal Lab for final Ascendancy.",
+  "Endgame {7}":"Optimize flask cluster. Fill remaining defensive nodes. Target Searing Exarch helm implicit.",
+  "1 Cluster {8}":"Add Cluster Jewels for Chaos DoT scaling. Prioritize Wicked Pall and Unwaveringly Evil notables.",
+  "Ultra Endgame {9}":"Final node optimizations. All ascendancy points claimed. Maximise Chaos DoT Multiplier.",
+};
+
+// Ascendancy panel nodes — kept separate from the main passive tree
+
+function saveState(){
+  const dgSer={};for(let i=1;i<=10;i++)dgSer[i]=[...doneGuide[i]];
+  localStorage.setItem('poe-coco',JSON.stringify({taken:[...taken],dg:dgSer,curAct,sga:selectedGuideAct}));
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem('poe-coco');if(!raw)return;
+    const s=JSON.parse(raw);
+    if(s.taken)s.taken.forEach(id=>taken.add(id));
+    if(s.dg)for(let i=1;i<=10;i++){if(s.dg[i])s.dg[i].forEach(j=>doneGuide[i].add(j));}
+    if(s.curAct&&SPECS[s.curAct])curAct=s.curAct;
+    if(s.sga&&s.sga>=1&&s.sga<=10)selectedGuideAct=s.sga;
+  }catch(e){}
+}
+
+let curAct="Act 1 {1}", taken=new Set();
+let selectedGuideAct=1;
+const doneGuide={};for(let i=1;i<=10;i++)doneGuide[i]=new Set();
+loadState();
+
+/* ══ TREE ══ */
+let treeZoom=1, panX=0, panY=0;
+const GRID=68, PAD=115;
+
+function renderTree(){
+  const canvas=document.getElementById('treeCanvas');
+  const wrap=document.getElementById('treeWrap');
+  const fullPlan=aSet(curAct), news=nSet(curAct), prev=pSet(curAct);
+  // exclude ascendancy nodes — they live in the separate ascendancy panel
+  const plan=new Set(fullPlan);
+
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  plan.forEach(id=>{ const[x,y]=coord(id); x<x0&&(x0=x);x>x1&&(x1=x);y<y0&&(y0=y);y>y1&&(y1=y); });
+  x0-=0.7; x1+=0.7; y0-=0.9; y1+=1.2;
+
+  const W=wrap.clientWidth||700, H=wrap.clientHeight||480;
+  canvas.width=W; canvas.height=H;
+  const baseH=(y1-y0)*GRID+PAD*2;
+  const ox=PAD+(-x0)*GRID;
+  const oy=baseH-PAD-(-y0)*GRID;
+
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  // bg dots (screen space — always fill visible area)
+  ctx.fillStyle='rgba(180,145,70,.04)';
+  for(let gx=20;gx<W;gx+=38) for(let gy=20;gy<H;gy+=38){
+    ctx.beginPath(); ctx.arc(gx,gy,1.3,0,Math.PI*2); ctx.fill();
+  }
+
+  ctx.save();
+  ctx.setTransform(treeZoom,0,0,treeZoom,panX,panY);
+
+  // edges (from real data.json connections)
+  EDGES.forEach(([a,b])=>{
+    if(!plan.has(a)||!plan.has(b)) return;
+    const[ax,ay]=coord(a), [bx,by]=coord(b);
+    const px1=ox+ax*GRID, py1=oy-ay*GRID;
+    const px2=ox+bx*GRID, py2=oy-by*GRID;
+    const at=taken.has(a),bt=taken.has(b);
+    const an=news.has(a),bn=news.has(b);
+    ctx.beginPath(); ctx.moveTo(px1,py1); ctx.lineTo(px2,py2);
+    if(at&&bt){ctx.strokeStyle=(news.has(a)&&news.has(b))?'rgba(100,210,45,.82)':'rgba(210,170,50,.88)';ctx.lineWidth=3;}
+    else if(an&&bn){ctx.strokeStyle='rgba(70,120,200,.42)';ctx.lineWidth=2;}
+    else{ctx.strokeStyle='rgba(180,145,70,.14)';ctx.lineWidth=1;}
+    ctx.stroke();
+  });
+
+  // nodes
+  plan.forEach(id=>{
+    const[cx,cy]=coord(id);
+    const px=ox+cx*GRID, py=oy-cy*GRID;
+    const inf=ni(id);
+    const isTaken=taken.has(id),isNew=news.has(id),isPrev=prev.has(id)&&!isNew;
+    const K=inf.t==='keystone',N=inf.t==='notable',M=inf.t==='mastery';
+    const A=inf.t==='attribute',S=inf.t==='start',Asc=inf.t==='ascendancy';
+    const r=K||Asc?18:N||M?13:S?18:A?10:8;
+
+    // glow
+    if(S){
+      const g=ctx.createRadialGradient(px,py,r,px,py,r*3.5);
+      g.addColorStop(0,'rgba(160,160,160,.28)'); g.addColorStop(1,'rgba(160,160,160,0)');
+      ctx.beginPath(); ctx.arc(px,py,r*3.5,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    } else if(isTaken){
+      const gc=(K&&isNew)?'rgba(220,70,70,':(M&&isNew)?'rgba(217,102,160,':isNew?'rgba(88,176,48,':'rgba(200,162,50,';
+      const g=ctx.createRadialGradient(px,py,r,px,py,r*3.5);
+      g.addColorStop(0,gc+'.32)'); g.addColorStop(1,gc+'0)');
+      ctx.beginPath(); ctx.arc(px,py,r*3.5,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    } else if(isNew&&(K||N||M)){
+      const gc=K?'rgba(220,70,70,':M?'rgba(217,102,160,':'rgba(70,120,200,';
+      const g=ctx.createRadialGradient(px,py,r,px,py,r*2.8);
+      g.addColorStop(0,gc+'.15)'); g.addColorStop(1,gc+'0)');
+      ctx.beginPath(); ctx.arc(px,py,r*2.8,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    }
+
+    // shape
+    ctx.beginPath();
+    if(K||Asc){ ctx.moveTo(px,py-r);ctx.lineTo(px+r,py);ctx.lineTo(px,py+r);ctx.lineTo(px-r,py);ctx.closePath(); }
+    else if(M){ for(let a=0;a<6;a++){const ang=(Math.PI/3)*a-Math.PI/6;a===0?ctx.moveTo(px+r*Math.cos(ang),py+r*Math.sin(ang)):ctx.lineTo(px+r*Math.cos(ang),py+r*Math.sin(ang));}ctx.closePath(); }
+    else{ ctx.arc(px,py,r,0,Math.PI*2); }
+
+    if(S){
+      ctx.fillStyle='rgba(50,50,55,.9)';
+      ctx.fill();
+      ctx.lineWidth=2.5; ctx.strokeStyle='rgba(180,180,190,.7)'; ctx.stroke();
+      [r+5,r+11].forEach((rad,i)=>{
+        ctx.beginPath(); ctx.arc(px,py,rad,0,Math.PI*2);
+        ctx.strokeStyle=`rgba(160,160,170,${.4-i*.15})`; ctx.lineWidth=i?0.6:1.2; ctx.stroke();
+      });
+    } else {
+      ctx.fillStyle=isTaken?((K&&isNew)?'rgba(185,55,55,.85)':(M&&isNew)?'rgba(185,60,130,.75)':isNew?'rgba(68,168,34,.7)':'rgba(165,128,32,.75)')
+        :isNew?(K?'rgba(185,55,55,.24)':N?'rgba(55,108,190,.32)':M?'rgba(185,60,130,.22)':'rgba(55,100,185,.18)')
+        :isPrev?'rgba(42,34,24,.85)':'rgba(14,11,8,.85)';
+      ctx.fill();
+      ctx.lineWidth=isTaken?3:isNew?2:0.8;
+      ctx.strokeStyle=isTaken?((K&&isNew)?'rgba(232,80,80,.96)':(M&&isNew)?'rgba(230,90,180,.95)':isNew?'rgba(122,222,48,.93)':'rgba(222,180,58,.96)')
+        :isNew?(K?'rgba(218,68,68,.82)':N?'rgba(106,160,244,.87)':M?'rgba(217,102,160,.88)':'rgba(88,136,222,.6)')
+        :isPrev?'rgba(180,145,70,.22)':'rgba(180,145,70,.1)';
+      ctx.stroke();
+    }
+
+    // labels
+    if(K||N||M||S||Asc){
+      const words=inf.n.split(' ');
+      const fs=K?12:N||M?10:S?13:9;
+      ctx.font=`500 ${fs}px 'Cinzel',serif`;
+      ctx.textAlign='center';
+      ctx.fillStyle=S?'rgba(200,200,210,.75)'
+        :isTaken?((K&&isNew)?'#f09090':(M&&isNew)?'#f070c0':isNew?'#9ef050':'#e8ca7a')
+        :isNew?(K?'#e86060':N?'#8abcf8':M?'#d966a0':'#80a8f0')
+        :'rgba(180,145,70,.38)';
+      words.forEach((w,i)=>ctx.fillText(w,px,py+r+fs+4+i*(fs+2)));
+    }
+  });
+
+  ctx.restore();
+
+  const ap=[...aSet(curAct)],tc=ap.filter(n=>taken.has(n)).length;
+  document.getElementById('tb-taken').textContent=tc;
+  document.getElementById('tb-plan').textContent=ap.length;
+}
+
+function getOrigin(){
+  const plan=new Set(aSet(curAct));
+  let x0=1e9,y0=1e9,y1=-1e9;
+  plan.forEach(id=>{ const[x,y]=coord(id); x<x0&&(x0=x); y<y0&&(y0=y); y>y1&&(y1=y); });
+  y0-=0.9; y1+=1.2;
+  const baseH=(y1-y0)*GRID+PAD*2;
+  return { ox:PAD+(-x0+0.7)*GRID, oy:baseH-PAD-(-y0)*GRID };
+}
+
+function hit(e){
+  const canvas=document.getElementById('treeCanvas');
+  const wrap=document.getElementById('treeWrap');
+  const rect=canvas.getBoundingClientRect();
+  // convert screen → base-pixel space (inverse of ctx.setTransform)
+  const bx=(e.clientX-rect.left-panX)/treeZoom;
+  const by=(e.clientY-rect.top-panY)/treeZoom;
+  const {ox,oy}=getOrigin();
+  const plan=new Set(aSet(curAct));
+  let best=null,bestD=99;
+  plan.forEach(id=>{
+    const[cx,cy]=coord(id);
+    const px=ox+cx*GRID, py=oy-cy*GRID;
+    const d=Math.sqrt((bx-px)**2+(by-py)**2);
+    const inf=ni(id);
+    if(inf.t==='start') return;
+    const hr=inf.t==='keystone'?24:inf.t==='notable'||inf.t==='mastery'?18:13;
+    if(d<hr&&d<bestD){bestD=d;best=id;}
+  });
+  return best;
+}
+
+const canvas=document.getElementById('treeCanvas');
+const wrap=document.getElementById('treeWrap');
+function initPan(){
+  const plan=new Set(aSet(curAct));
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  plan.forEach(id=>{ const[x,y]=coord(id); x<x0&&(x0=x);x>x1&&(x1=x);y<y0&&(y0=y);y>y1&&(y1=y); });
+  x0-=0.7; x1+=0.7; y0-=0.9; y1+=1.2;
+  const bW=(x1-x0)*GRID+PAD*2, bH=(y1-y0)*GRID+PAD*2;
+  panX=(wrap.clientWidth-bW)/2;
+  panY=(wrap.clientHeight-bH)/2;
+}
+
+let _drag={active:false,moved:false,x:0,y:0,px:0,py:0};
+wrap.addEventListener('mousedown',e=>{
+  if(e.button!==0)return;
+  _drag={active:true,moved:false,x:e.clientX,y:e.clientY,px:panX,py:panY};
+  wrap.style.cursor='grabbing';
+});
+window.addEventListener('mousemove',e=>{
+  if(!_drag.active)return;
+  const dx=e.clientX-_drag.x, dy=e.clientY-_drag.y;
+  if(!_drag.moved&&Math.abs(dx)+Math.abs(dy)>4) _drag.moved=true;
+  if(_drag.moved){panX=_drag.px+dx;panY=_drag.py+dy;renderTree();}
+});
+window.addEventListener('mouseup',e=>{
+  if(!_drag.active)return;
+  wrap.style.cursor='crosshair';
+  _drag.active=false;
+});
+wrap.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const rect=wrap.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const oldZoom=treeZoom;
+  treeZoom=Math.min(4,Math.max(0.2,treeZoom*(e.deltaY<0?1.1:0.9)));
+  if(treeZoom===oldZoom)return;
+  const ratio=treeZoom/oldZoom;
+  panX=mx-(mx-panX)*ratio;
+  panY=my-(my-panY)*ratio;
+  renderTree();
+},{passive:false});
+canvas.addEventListener('click',e=>{if(_drag.moved)return;const id=hit(e);if(!id)return;if(taken.has(id))taken.delete(id);else taken.add(id);saveState();renderTree();renderRight();});
+canvas.addEventListener('contextmenu',e=>{e.preventDefault();if(_drag.moved)return;const id=hit(e);if(id){taken.delete(id);saveState();renderTree();renderRight();}});
+
+canvas.addEventListener('mousemove',e=>{
+  if(_drag.moved)return;
+  const id=hit(e);
+  const tip=document.getElementById('tip');
+  if(id){
+    const inf=ni(id);
+    document.getElementById('tip-name').textContent=inf.n;
+    document.getElementById('tip-desc').textContent=inf.d;
+    const ts=document.getElementById('tip-state');
+    if(taken.has(id)){ts.textContent='✓ Taken in-game';ts.className='tip-state ts-t';}
+    else if(nSet(curAct).has(id)){ts.textContent='◆ New this act — click to mark taken';ts.className='tip-state ts-p';}
+    else{ts.textContent='○ From a previous act';ts.className='tip-state ts-o';}
+    tip.style.display='block';
+    tip.style.left=Math.min(e.clientX+16,window.innerWidth-240)+'px';
+    tip.style.top=(e.clientY-8)+'px';
+  } else tip.style.display='none';
+});
+canvas.addEventListener('mouseleave',()=>document.getElementById('tip').style.display='none');
+
+function renderTabs(){
+  document.getElementById('act-tabs').innerHTML=Object.keys(SPECS).map(a=>{
+    const label=a.replace(/\s*\{\d+\}$/,'');
+    return `<div class="act-tab${a===curAct?' active':''}" onclick="switchAct('${a}')">${label}<span class="tab-badge">+${nSet(a).size}</span></div>`;
+  }).join('');
+}
+function switchAct(a){curAct=a;saveState();treeZoom=1;initPan();renderTabs();renderTree();renderQuests();renderRight();}
+
+function qtype(s){return /\b(kill|defeat|slay)\b/i.test(s)?'fight':/\b(talk|speak|receive|reward|logout|log out|book of skill|gem reward)\b/i.test(s)?'quest':'explore';}
+function renderQuests(){
+  const c=document.getElementById('quest-list');
+  const sel=document.getElementById('guide-act-sel');
+  if(sel)sel.value=selectedGuideAct;
+  const steps=LEVELING_GUIDE[selectedGuideAct]||[];
+  const done=doneGuide[selectedGuideAct];
+  const doneCount=done.size, total=steps.length;
+  let html=`<div class="part-lbl">Act ${selectedGuideAct} — ${doneCount} / ${total} done</div>`;
+  steps.forEach((q,i)=>{
+    const t=qtype(q);
+    html+=`<div class="qstep${done.has(i)?' done':''}" onclick="toggleQ(${i})"><div class="qdot d-${t}"></div><div class="qt">${q}</div></div>`;
+  });
+  if(selectedGuideAct<10)html+=`<div style="padding:1rem 0 .5rem;text-align:center"><button onclick="switchGuideAct(${selectedGuideAct+1})" style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:.12em;color:var(--gold);background:var(--bg4);border:1px solid var(--bord2);border-radius:5px;padding:7px 18px;cursor:pointer;">Act ${selectedGuideAct+1} →</button></div>`;
+  c.innerHTML=html;
+}
+function toggleQ(i){const d=doneGuide[selectedGuideAct];if(d.has(i))d.delete(i);else d.add(i);saveState();renderQuests();renderRight();}
+function switchGuideAct(n){selectedGuideAct=+n;saveState();renderQuests();document.querySelector('.col.left').scrollTop=0;}
+
+function renderRight(){
+  const ap=[...aSet(curAct)],tc=ap.filter(n=>taken.has(n)).length;
+  const qD=Object.values(doneGuide).reduce((s,a)=>s+a.size,0);
+  const qT=Object.values(LEVELING_GUIDE).reduce((s,a)=>s+a.length,0);
+  const kn=[...nSet(curAct)].filter(id=>{
+    const t=ni(id).t;return t==='notable'||t==='keystone'||t==='mastery';
+  });
+  const knTaken=kn.filter(id=>taken.has(id)).length;
+  const gems=(GEMS[curAct]||GEMS["Act 1 {1}"]).map(g=>`
+    <div class="gem-row"><div class="gem-dot gd-${g.t}"></div><div class="gem-name">${g.n}</div><div class="gem-tag">${g.g}</div></div>`).join('');
+  const nodeList=kn.map(id=>{
+    const inf=ni(id);const isTaken=taken.has(id);
+    return `<div class="ntl-row">
+      <div class="ci-box${isTaken?' on':''}">${isTaken?'✓':''}</div>
+      <span class="ntl-name${isTaken?' on':''}">${inf.n}</span>
+      ${inf.t==='keystone'?'<span class="ntl-key">KEYSTONE</span>':inf.t==='mastery'?'<span class="ntl-mastery">MASTERY</span>':''}
+    </div>`;}).join('');
+  document.getElementById('right-panel').innerHTML=`
+    <div class="sec">
+      <div class="sec-hdr">Progress</div>
+      <div class="pbar-row">
+        <div class="pbar-wrap"><div class="pbar pb-gold" style="width:${Math.round(qD/qT*100)}%"></div></div>
+        <div class="pb-lbl"><span>Quests</span><span>${qD} / ${qT}</span></div>
+      </div>
+      <div class="pbar-row">
+        <div class="pbar-wrap"><div class="pbar pb-psn" style="width:${kn.length?Math.round(knTaken/kn.length*100):0}%"></div></div>
+        <div class="pb-lbl"><span>Key nodes</span><span>${knTaken} / ${kn.length}</span></div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-hdr">Tree — ${curAct.replace(/\s*\{\d+\}$/,'')}</div>
+      <div class="sg">
+        <div class="sc"><div class="sc-v">${ap.length}</div><div class="sc-l">Planned</div></div>
+        <div class="sc"><div class="sc-v" style="color:var(--psn2)">+${nSet(curAct).size}</div><div class="sc-l">New nodes</div></div>
+        <div class="sc"><div class="sc-v" style="color:var(--gold2)">${tc}</div><div class="sc-l">Clicked taken</div></div>
+        <div class="sc"><div class="sc-v" style="color:var(--mut)">${ap.length-tc}</div><div class="sc-l">Remaining</div></div>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-hdr">Key nodes to take</div>${nodeList||'<div style="color:var(--mut);font-size:13px">No notable nodes this phase.</div>'}</div>
+    <div class="sec"><div class="sec-hdr">Gems — ${curAct.replace(/\s*\{\d+\}$/,'')}</div>${gems}</div>
+    <div class="sec"><div class="sec-hdr">Notes</div><div class="note-box">${NOTES[curAct]||''}</div></div>`;
+}
+
+renderTabs(); renderQuests(); renderRight();
+setTimeout(()=>{initPan();renderTree();}, 60);
+window.addEventListener('resize',()=>{renderTree();});
+</script>
+</body>
+</html>
