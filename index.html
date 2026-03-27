@@ -30,19 +30,26 @@ body{font-family:'Crimson Pro',Georgia,serif;color:var(--tx);display:flex;flex-d
 .act-tab.active{color:var(--gold2);background:rgba(201,168,76,.13);border-color:rgba(201,168,76,.32);}
 .tab-badge{font-size:10px;padding:1px 6px;border-radius:3px;background:rgba(88,176,48,.18);color:var(--psn2);font-family:'Cinzel',serif;}
 .act-tab.active .tab-badge{background:rgba(88,176,48,.3);}
-.layout{display:grid;grid-template-columns:340px 1fr 300px;grid-auto-rows:1fr;flex:1;min-height:0;overflow:hidden;}
+.layout{display:grid;grid-template-columns:300px 1fr 340px;grid-auto-rows:1fr;flex:1;min-height:0;overflow:hidden;}
 .col{overflow-y:auto;overflow-x:hidden;}
 .col::-webkit-scrollbar{width:4px;}
 .col::-webkit-scrollbar-thumb{background:var(--bord);}
-.left{background:var(--bg2);border-right:1px solid var(--bord);padding:1.1rem 1.1rem 3rem;}
+.left{background:var(--bg2);border-left:1px solid var(--bord);padding:1.1rem 1.1rem 3rem;}
 .col-hdr{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;padding-bottom:.65rem;border-bottom:1px solid var(--bord);margin-bottom:.9rem;}
 .guide-act-sel{width:100%;background:var(--bg4);border:1px solid var(--bord2);border-radius:5px;color:var(--gold);font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;padding:6px 10px;margin-bottom:.9rem;cursor:pointer;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23c9a84c'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
 .guide-act-sel option{background:var(--bg3);color:var(--tx);}
 .part-lbl{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin:1.1rem 0 .4rem;padding-left:4px;}
 .qstep{display:flex;align-items:flex-start;gap:9px;padding:7px;border-radius:5px;cursor:pointer;transition:background .12s;border:1px solid transparent;margin-bottom:2px;}
 .qstep:hover{background:var(--bg4);}
-.qstep.done{opacity:.35;}
-.qstep.done .qt{text-decoration:line-through;color:var(--dim);}
+.qstep.done{opacity:.4;padding:3px 7px;margin-bottom:1px;align-items:center;}
+.qstep.done .qt{text-decoration:line-through;color:var(--dim);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.qstep.done .qdot{margin-top:0;width:5px;height:5px;}
+.qstep.hidden-done{display:none;}
+.qstep.current-step{background:rgba(88,176,48,.09);border-color:rgba(88,176,48,.45);padding:10px 10px 10px 12px;border-left:3px solid var(--psn2);margin-bottom:6px;margin-top:4px;}
+.qstep.current-step .qt{color:var(--tx);font-weight:400;font-size:15px;}
+.qstep.current-step .qdot{width:8px;height:8px;margin-top:7px;}
+body.guide-mode .qstep.current-step .qt{font-size:19px;}
+body.guide-mode .qstep.current-step{padding:14px 14px 14px 16px;border-left-width:4px;}
 .qdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:6px;}
 .d-fight{background:var(--red2);}.d-explore{background:var(--blu2);}.d-quest{background:var(--psn2);}.d-item{background:var(--gold);}
 .qt{font-size:14px;font-weight:300;line-height:1.5;color:var(--tx);}
@@ -61,7 +68,7 @@ body{font-family:'Crimson Pro',Georgia,serif;color:var(--tx);display:flex;flex-d
 .tree-hint{margin-left:auto;font-size:11px;color:var(--dim);}
 .tree-wrap{flex:1;overflow:hidden;cursor:crosshair;user-select:none;}
 #treeCanvas{display:block;}
-.right{background:var(--bg2);border-left:1px solid var(--bord);padding:1.1rem 1.1rem 3rem;}
+.right{background:var(--bg2);border-right:1px solid var(--bord);padding:1.1rem 1.1rem 3rem;}
 .sec{margin-bottom:1.5rem;}
 .sec-hdr{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;padding-bottom:.55rem;border-bottom:1px solid var(--bord);margin-bottom:.8rem;}
 .pbar-row{margin-bottom:9px;}
@@ -93,6 +100,31 @@ body{font-family:'Crimson Pro',Georgia,serif;color:var(--tx);display:flex;flex-d
 .tip-desc{color:var(--mut);font-size:12px;font-weight:300;line-height:1.5;white-space:pre-line;}
 .tip-state{font-size:11px;margin-top:5px;font-family:'Cinzel',serif;letter-spacing:.07em;}
 .ts-p{color:var(--blu2);}.ts-t{color:var(--psn2);}.ts-o{color:var(--dim);}
+.tb-io{display:flex;gap:6px;align-items:center;}
+.io-btn{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.08em;color:var(--mut);background:var(--bg4);border:1px solid var(--bord);border-radius:4px;padding:5px 11px;cursor:pointer;transition:all .15s;}
+.io-btn:hover{color:var(--gold);border-color:var(--bord2);}
+.io-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:400;display:flex;align-items:center;justify-content:center;}
+.io-box{background:var(--bg3);border:1px solid var(--bord2);border-radius:8px;padding:24px;width:480px;max-width:90vw;display:flex;flex-direction:column;gap:14px;}
+.io-title{font-family:'Cinzel',serif;font-size:13px;color:var(--gold2);letter-spacing:.12em;}
+.io-ta{width:100%;height:140px;background:var(--bg4);border:1px solid var(--bord);border-radius:5px;color:var(--tx);font-family:monospace;font-size:12px;padding:10px;resize:vertical;outline:none;}
+.io-ta:focus{border-color:var(--bord2);}
+.io-row{display:flex;gap:8px;justify-content:flex-end;}
+.io-ok{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.08em;color:var(--bg);background:var(--gold);border:none;border-radius:4px;padding:7px 18px;cursor:pointer;}
+.io-ok:hover{background:var(--gold2);}
+.io-cancel{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.08em;color:var(--mut);background:var(--bg4);border:1px solid var(--bord);border-radius:4px;padding:7px 18px;cursor:pointer;}
+.io-cancel:hover{color:var(--tx);}
+/* Guide expand mode */
+body.guide-mode .center{display:none;}
+body.guide-mode .left{grid-column:2/4;max-width:none;display:flex;flex-direction:column;align-items:center;padding:2rem 2rem 4rem;}
+body.guide-mode .left>*{width:100%;max-width:700px;}
+body.guide-mode .col-hdr{font-size:13px;letter-spacing:.2em;}
+body.guide-mode .guide-act-sel{font-size:13px;padding:9px 14px;}
+body.guide-mode .part-lbl{font-size:12px;margin:1.4rem 0 .6rem;}
+body.guide-mode .qstep:not(.done){padding:10px 14px;margin-bottom:4px;}
+body.guide-mode .qt{font-size:17px;line-height:1.6;}
+body.guide-mode .qdot{width:8px;height:8px;margin-top:8px;}
+.view-btn{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.08em;color:var(--gold2);background:rgba(201,168,76,.13);border:1px solid rgba(201,168,76,.32);border-radius:4px;padding:5px 11px;cursor:pointer;transition:all .15s;}
+.view-btn:hover{background:rgba(201,168,76,.22);}
 </style>
 </head>
 <body>
@@ -105,9 +137,34 @@ body{font-family:'Crimson Pro',Georgia,serif;color:var(--tx);display:flex;flex-d
     <div class="tbs"><div class="tbs-v" id="tb-taken">0</div><div class="tbs-l">Nodes taken</div></div>
     <div class="tbs"><div class="tbs-v" id="tb-plan">14</div><div class="tbs-l">Planned</div></div>
   </div>
+  <div class="tb-io">
+    <button class="view-btn" id="view-toggle-btn" onclick="toggleView()">Guide View</button>
+    <button class="io-btn" onclick="openExport()">Export</button>
+    <button class="io-btn" onclick="openImport()">Import</button>
+  </div>
+</div>
+<div class="io-modal" id="io-modal" style="display:none;" onclick="if(event.target===this)closeModal()">
+  <div class="io-box">
+    <div class="io-title" id="io-title"></div>
+    <textarea class="io-ta" id="io-ta" spellcheck="false"></textarea>
+    <div class="io-row">
+      <button class="io-cancel" onclick="closeModal()">Cancel</button>
+      <button class="io-ok" id="io-ok"></button>
+    </div>
+  </div>
+</div>
+<div class="io-modal" id="order-modal" style="display:none;" onclick="if(event.target===this)closeOrderModal()">
+  <div class="io-box" style="width:360px;">
+    <div class="io-title">STEPS INCOMPLETE</div>
+    <div id="order-msg" style="font-size:13px;color:var(--mut);line-height:1.6;font-weight:300;"></div>
+    <div class="io-row">
+      <button class="io-cancel" onclick="closeOrderModal()">Cancel</button>
+      <button class="io-ok" id="order-ok">Clear all previous</button>
+    </div>
+  </div>
 </div>
 <div class="layout">
-  <div class="col left"><div class="col-hdr">Leveling Guide</div><select class="guide-act-sel" id="guide-act-sel" onchange="switchGuideAct(+this.value)"><option value="1">Act I</option><option value="2">Act II</option><option value="3">Act III</option><option value="4">Act IV</option><option value="5">Act V</option><option value="6">Act VI</option><option value="7">Act VII</option><option value="8">Act VIII</option><option value="9">Act IX</option><option value="10">Act X</option></select><div id="quest-list"></div></div>
+  <div class="col right" id="right-panel"></div>
   <div class="center">
     <div class="act-tabs" id="act-tabs"></div>
     <div class="tree-bar">
@@ -123,7 +180,7 @@ body{font-family:'Crimson Pro',Georgia,serif;color:var(--tx);display:flex;flex-d
     </div>
     <div class="tree-wrap" id="treeWrap"><canvas id="treeCanvas"></canvas></div>
   </div>
-  <div class="col right" id="right-panel"></div>
+  <div class="col left"><div class="col-hdr">Leveling Guide</div><select class="guide-act-sel" id="guide-act-sel" onchange="switchGuideAct(+this.value)"><option value="1">Act I</option><option value="2">Act II</option><option value="3">Act III</option><option value="4">Act IV</option><option value="5">Act V</option><option value="6">Act VI</option><option value="7">Act VII</option><option value="8">Act VIII</option><option value="9">Act IX</option><option value="10">Act X</option></select><div id="quest-list"></div></div>
 </div>
 <div class="tip" id="tip">
   <div class="tip-name" id="tip-name"></div>
@@ -906,6 +963,42 @@ function loadState(){
     if(s.sga&&s.sga>=1&&s.sga<=10)selectedGuideAct=s.sga;
   }catch(e){}
 }
+function toggleView(){
+  const guide=document.body.classList.toggle('guide-mode');
+  document.getElementById('view-toggle-btn').textContent=guide?'Tree View':'Guide View';
+}
+function openExport(){
+  const raw=localStorage.getItem('poe-coco')||'{}';
+  document.getElementById('io-title').textContent='EXPORT SAVE';
+  const ta=document.getElementById('io-ta');
+  ta.value=raw;ta.readOnly=true;
+  const ok=document.getElementById('io-ok');
+  ok.textContent='Copy';
+  ok.onclick=()=>{navigator.clipboard.writeText(ta.value).then(()=>{ok.textContent='Copied!';setTimeout(()=>ok.textContent='Copy',1500);});};
+  document.getElementById('io-modal').style.display='flex';
+  ta.select();
+}
+function openImport(){
+  document.getElementById('io-title').textContent='IMPORT SAVE';
+  const ta=document.getElementById('io-ta');
+  ta.value='';ta.readOnly=false;ta.placeholder='Paste save data here…';
+  const ok=document.getElementById('io-ok');
+  ok.textContent='Import';
+  ok.onclick=()=>{
+    try{
+      const s=JSON.parse(ta.value.trim());
+      taken.clear();if(s.taken)s.taken.forEach(id=>taken.add(id));
+      for(let i=1;i<=10;i++)doneGuide[i].clear();
+      if(s.dg)for(let i=1;i<=10;i++){if(s.dg[i])s.dg[i].forEach(j=>doneGuide[i].add(j));}
+      if(s.curAct&&SPECS[s.curAct])curAct=s.curAct;
+      if(s.sga&&s.sga>=1&&s.sga<=10){selectedGuideAct=s.sga;document.getElementById('guide-act-sel').value=s.sga;}
+      saveState();renderTabs();renderQuests();renderRight();initPan();renderTree();closeModal();
+    }catch(e){ta.style.borderColor='var(--red2)';setTimeout(()=>ta.style.borderColor='',1000);}
+  };
+  document.getElementById('io-modal').style.display='flex';
+  ta.focus();
+}
+function closeModal(){document.getElementById('io-modal').style.display='none';}
 
 let curAct="Act 1 {1}", taken=new Set();
 let selectedGuideAct=1;
@@ -1145,14 +1238,34 @@ function renderQuests(){
   const done=doneGuide[selectedGuideAct];
   const doneCount=done.size, total=steps.length;
   let html=`<div class="part-lbl">Act ${selectedGuideAct} — ${doneCount} / ${total} done</div>`;
+  const doneIdx=steps.map((_,i)=>i).filter(i=>done.has(i));
+  const show3=new Set(doneIdx.slice(-3));
+  const currentIdx=steps.findIndex((_,i)=>!done.has(i));
   steps.forEach((q,i)=>{
     const t=qtype(q);
-    html+=`<div class="qstep${done.has(i)?' done':''}" onclick="toggleQ(${i})"><div class="qdot d-${t}"></div><div class="qt">${q}</div></div>`;
+    const isDone=done.has(i);
+    const hide=isDone&&!show3.has(i);
+    const isCurrent=i===currentIdx;
+    html+=`<div class="qstep${isDone?' done':''}${hide?' hidden-done':''}${isCurrent?' current-step':''}" onclick="toggleQ(${i})"><div class="qdot d-${t}"></div><div class="qt">${q}</div></div>`;
   });
   if(selectedGuideAct<10)html+=`<div style="padding:1rem 0 .5rem;text-align:center"><button onclick="switchGuideAct(${selectedGuideAct+1})" style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:.12em;color:var(--gold);background:var(--bg4);border:1px solid var(--bord2);border-radius:5px;padding:7px 18px;cursor:pointer;">Act ${selectedGuideAct+1} →</button></div>`;
   c.innerHTML=html;
 }
-function toggleQ(i){const d=doneGuide[selectedGuideAct];if(d.has(i))d.delete(i);else d.add(i);saveState();renderQuests();renderRight();}
+function toggleQ(i){
+  const d=doneGuide[selectedGuideAct];
+  if(d.has(i)){d.delete(i);saveState();renderQuests();renderRight();return;}
+  const missing=[];
+  for(let j=0;j<i;j++){if(!d.has(j))missing.push(j);}
+  if(missing.length){
+    const n=missing.length;
+    document.getElementById('order-msg').textContent=`${n} previous step${n>1?'s are':' is'} not done yet. Clear all previous steps to continue?`;
+    document.getElementById('order-ok').onclick=()=>{for(let j=0;j<=i;j++)d.add(j);saveState();renderQuests();renderRight();closeOrderModal();};
+    document.getElementById('order-modal').style.display='flex';
+  } else {
+    d.add(i);saveState();renderQuests();renderRight();
+  }
+}
+function closeOrderModal(){document.getElementById('order-modal').style.display='none';}
 function switchGuideAct(n){selectedGuideAct=+n;saveState();renderQuests();document.querySelector('.col.left').scrollTop=0;}
 
 function renderRight(){
